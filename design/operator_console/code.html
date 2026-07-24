@@ -1,0 +1,263 @@
+<!DOCTYPE html><html lang="en" class="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">try{
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary": "#ffffff",
+                        "tertiary": "#003f83",
+                        "surface-bright": "#f8f9fa",
+                        "outline-variant": "#c1c7d2",
+                        "primary-container": "#005a9c",
+                        "surface-container-high": "#e7e8e9",
+                        "on-secondary-container": "#5b646b",
+                        "primary-fixed": "#d2e4ff",
+                        "inverse-on-surface": "#f0f1f2",
+                        "surface-container": "#edeeef",
+                        "secondary-fixed": "#dbe4ed",
+                        "on-surface": "#191c1d",
+                        "on-surface-variant": "#414750",
+                        "inverse-primary": "#a1c9ff",
+                        "secondary": "#575f67",
+                        "on-primary-fixed-variant": "#00487f",
+                        "on-error-container": "#93000a",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-highest": "#e1e3e4",
+                        "error-container": "#ffdad6",
+                        "on-error": "#ffffff",
+                        "tertiary-container": "#27579d",
+                        "tertiary-fixed-dim": "#abc7ff",
+                        "primary": "#004275",
+                        "tertiary-fixed": "#d7e3ff",
+                        "surface": "#f8f9fa",
+                        "secondary-container": "#d8e1ea",
+                        "on-secondary": "#ffffff",
+                        "background": "#f8f9fa",
+                        "on-secondary-fixed-variant": "#3f484f",
+                        "on-background": "#191c1d",
+                        "inverse-surface": "#2e3132",
+                        "surface-variant": "#e1e3e4",
+                        "on-tertiary-container": "#b7cfff",
+                        "surface-container-low": "#f3f4f5",
+                        "surface-tint": "#1261a3",
+                        "outline": "#727781",
+                        "on-primary-fixed": "#001c37",
+                        "surface-dim": "#d9dadb",
+                        "on-secondary-fixed": "#141d23",
+                        "on-primary-container": "#afd1ff",
+                        "primary-fixed-dim": "#a1c9ff",
+                        "surface-container-lowest": "#ffffff",
+                        "error": "#ba1a1a",
+                        "secondary-fixed-dim": "#bfc8d0",
+                        "on-tertiary-fixed": "#001b3f",
+                        "on-tertiary-fixed-variant": "#0c458b",
+                        "success": "#198754",
+                        "on-success": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "8px",
+                        "lg": "24px",
+                        "gutter": "16px",
+                        "xl": "32px",
+                        "container-margin": "24px",
+                        "xs": "4px",
+                        "md": "16px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "label-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "title-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "title-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "display-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400" }],
+                        "title-lg": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500" }],
+                        "title-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.15px", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "headline-sm": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+                        "display-lg": ["57px", { "lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    }catch(_e){}</script></head><body class="bg-background text-on-background font-body-lg min-h-screen flex flex-col pt-16 pb-20 md:pb-0">
+
+    <!-- TopAppBar -->
+    <header class="fixed top-0 w-full z-50 flex items-center justify-between px-md h-16 bg-surface border-b border-outline-variant flat no shadows transition-colors duration-200">
+        <div class="flex items-center gap-sm">
+            <button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors">
+                <span class="material-symbols-outlined" data-original-icon="arrow_back">arrow_back</span>
+            </button>
+            <div class="flex flex-col">
+                <h1 class="font-headline-sm text-headline-sm text-primary">Shuttle 01</h1>
+                <span class="font-label-md text-label-md text-on-surface-variant">ID: RS-4402</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-xs px-3 py-1.5 bg-[#e6f4ea] rounded-full border border-[#ceead6]">
+            <span class="material-symbols-outlined text-[16px] text-[#137333]" data-original-icon="check_circle">check_circle</span>
+            <span class="font-label-lg text-label-lg text-[#137333]">Connected</span>
+        </div>
+    <button class="p-2 text-on-surface-variant hover:bg-surface-container-high rounded-full transition-colors ml-2" title="Toggle Radio Connection">
+<span class="material-symbols-outlined">settings_input_antenna</span>
+</button></header>
+
+    <!-- Main Content -->
+    <main class="flex-1 px-gutter py-lg md:px-lg max-w-7xl mx-auto w-full flex flex-col gap-lg">
+        
+        <!-- SECTION 1: Manual Controls -->
+        <section class="flex flex-col gap-sm">
+            <h2 class="font-title-lg text-title-lg text-on-background">Manual Controls</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-sm">
+                <button class="flex flex-col items-center justify-center gap-sm p-4 bg-primary text-on-primary rounded-lg border border-primary hover:bg-on-primary-fixed-variant transition-colors min-h-[100px] active:scale-95 shadow-sm">
+                    <span class="material-symbols-outlined text-3xl">input</span>
+                    <span class="font-label-lg text-label-lg text-center">Store Pallet</span>
+                </button>
+                <button class="flex flex-col items-center justify-center gap-sm p-4 bg-primary text-on-primary rounded-lg border border-primary hover:bg-on-primary-fixed-variant transition-colors min-h-[100px] active:scale-95 shadow-sm">
+                    <span class="material-symbols-outlined text-3xl">output</span>
+                    <span class="font-label-lg text-label-lg text-center">Retrieve Pallet</span>
+                </button>
+                <button class="flex flex-col items-center justify-center gap-sm p-4 bg-surface text-primary border border-outline-variant hover:bg-surface-container transition-colors rounded-lg min-h-[100px] active:scale-95">
+                    <span class="material-symbols-outlined text-3xl" data-original-icon="arrow_upward">arrow_upward</span>
+                    <span class="font-label-lg text-label-lg text-center">Move Forward</span>
+                </button>
+                <button class="flex flex-col items-center justify-center gap-sm p-4 bg-surface text-primary border border-outline-variant hover:bg-surface-container transition-colors rounded-lg min-h-[100px] active:scale-95">
+                    <span class="material-symbols-outlined text-3xl" data-original-icon="arrow_downward">arrow_downward</span>
+                    <span class="font-label-lg text-label-lg text-center">Move Reverse</span>
+                </button>
+                <button class="flex flex-col items-center justify-center gap-sm p-4 bg-surface text-primary border border-outline-variant hover:bg-surface-container transition-colors rounded-lg min-h-[100px] active:scale-95">
+                    <span class="material-symbols-outlined text-3xl" data-original-icon="keyboard_arrow_up">keyboard_arrow_up</span>
+                    <span class="font-label-lg text-label-lg text-center">Lift Up</span>
+                </button>
+                <button class="flex flex-col items-center justify-center gap-sm p-4 bg-surface text-primary border border-outline-variant hover:bg-surface-container transition-colors rounded-lg min-h-[100px] active:scale-95">
+                    <span class="material-symbols-outlined text-3xl" data-original-icon="keyboard_arrow_down">keyboard_arrow_down</span>
+                    <span class="font-label-lg text-label-lg text-center">Lift Down</span>
+                </button>
+                <button class="flex flex-col items-center justify-center gap-sm p-4 bg-primary text-on-primary rounded-lg border border-primary hover:bg-on-primary-fixed-variant transition-colors min-h-[100px] active:scale-95 shadow-sm">
+<span class="material-symbols-outlined text-3xl">compress</span>
+<span class="font-label-lg text-label-lg text-center">Compact Pull</span>
+</button>
+<button class="flex flex-col items-center justify-center gap-sm p-4 bg-primary text-on-primary rounded-lg border border-primary hover:bg-on-primary-fixed-variant transition-colors min-h-[100px] active:scale-95 shadow-sm">
+<span class="material-symbols-outlined text-3xl">vertical_align_center</span>
+<span class="font-label-lg text-label-lg text-center">Compact Push</span>
+</button><button class="col-span-2 flex flex-col items-center justify-center gap-sm p-4 bg-error text-on-error rounded-lg border border-error hover:bg-[#93000a] transition-colors min-h-[100px] active:scale-95 shadow-md shadow-error/20">
+                    <span class="material-symbols-outlined text-4xl" data-original-icon="emergency">emergency</span>
+                    <span class="font-title-lg text-title-lg text-center uppercase tracking-widest font-bold">Stop</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- SECTION 2: Live Status Panel -->
+        <section class="flex flex-col gap-sm">
+            <h2 class="font-title-lg text-title-lg text-on-background">Live Status</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-sm">
+                <!-- Status Card 1 -->
+                <div class="bg-surface p-4 rounded-lg border border-outline-variant flex flex-col gap-xs">
+                    <span class="font-label-md text-label-md text-on-surface-variant uppercase">Current Mission</span>
+                    <span class="font-body-lg text-body-lg text-on-surface truncate">MSN-773-XYZ</span>
+                </div>
+                <!-- Status Card 2 -->
+                <div class="bg-surface p-4 rounded-lg border border-outline-variant flex flex-col gap-xs">
+                    <span class="font-label-md text-label-md text-on-surface-variant uppercase">State</span>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-primary"></span>
+                        <span class="font-body-lg text-body-lg text-on-surface">Executing</span>
+                    </div>
+                </div>
+                <!-- Status Card 3 -->
+                <div class="bg-surface p-4 rounded-lg border border-outline-variant flex flex-col gap-xs">
+                    <span class="font-label-md text-label-md text-on-surface-variant uppercase">Speed</span>
+                    <span class="font-title-lg text-title-lg text-on-surface">1.2 <span class="font-body-md text-body-md text-on-surface-variant">m/s</span></span>
+                </div>
+                <!-- Status Card 4 -->
+                <div class="bg-surface p-4 rounded-lg border border-outline-variant flex flex-col gap-xs">
+                    <span class="font-label-md text-label-md text-on-surface-variant uppercase">Direction</span>
+                    <div class="flex items-center gap-1 text-primary">
+                        <span class="material-symbols-outlined">arrow_forward</span>
+                        <span class="font-body-lg text-body-lg text-on-surface">Forward</span>
+                    </div>
+                </div>
+                <!-- Status Card 5 -->
+                <div class="bg-surface p-4 rounded-lg border border-outline-variant flex flex-col gap-xs">
+                    <span class="font-label-md text-label-md text-on-surface-variant uppercase">Battery</span>
+                    <div class="flex items-center gap-2">
+                        <span class="font-title-lg text-title-lg text-on-surface w-12">78%</span>
+                        <div class="h-2 flex-1 bg-surface-container-high rounded-full overflow-hidden">
+                            <div class="h-full bg-success w-[78%]"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Status Card 6 -->
+                <div class="bg-surface p-4 rounded-lg border border-outline-variant flex flex-col gap-xs">
+                    <span class="font-label-md text-label-md text-on-surface-variant uppercase">Rack Pos</span>
+                    <span class="font-body-lg text-body-lg text-on-surface">Aisle 4, Level 2</span>
+                </div>
+                <!-- Status Card 7 -->
+                <div class="bg-surface p-4 rounded-lg border border-outline-variant flex flex-col gap-xs">
+                    <span class="font-label-md text-label-md text-on-surface-variant uppercase">Lift Pos</span>
+                    <span class="font-body-lg text-body-lg text-on-surface">Raised (Level)</span>
+                </div>
+                <!-- Status Card 8 -->
+                <div class="bg-surface p-4 rounded-lg border border-outline-variant flex flex-col gap-xs">
+                    <span class="font-label-md text-label-md text-on-surface-variant uppercase">Comms</span>
+                    <div class="flex items-center gap-2 text-[#137333]">
+                        <span class="material-symbols-outlined text-[18px]">wifi</span>
+                        <span class="font-body-lg text-body-lg text-on-surface">Stable</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: Live Fault Panel -->
+        <section class="flex flex-col gap-sm">
+            <h2 class="font-title-lg text-title-lg text-on-background flex items-center gap-2">
+                <span class="material-symbols-outlined text-error">warning</span>
+                Live Faults
+            </h2>
+            <div class="bg-surface rounded-xl border border-outline-variant overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-surface-container-low border-b border-outline-variant">
+                            <tr>
+                                <th class="py-3 px-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Severity</th>
+                                <th class="py-3 px-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Fault Code</th>
+                                <th class="py-3 px-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Description</th>
+                                <th class="py-3 px-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Time</th>
+                                <th class="py-3 px-4 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Suggested Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-outline-variant">
+                            <tr class="hover:bg-[#E7F1FF] transition-colors">
+                                <td class="py-3 px-4">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-error-container text-on-error-container uppercase">Critical</span>
+                                </td>
+                                <td class="py-3 px-4 font-body-md text-body-md text-on-surface">F-1022</td>
+                                <td class="py-3 px-4 font-body-md text-body-md text-on-surface">Obstruction detected in path.</td>
+                                <td class="py-3 px-4 font-body-md text-body-md text-on-surface-variant whitespace-nowrap">10:42:15 AM</td>
+                                <td class="py-3 px-4 font-body-md text-body-md text-on-surface">Clear path and resume.</td>
+                            </tr>
+                            <tr class="hover:bg-[#E7F1FF] transition-colors">
+                                <td class="py-3 px-4">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-bold bg-[#fef0d9] text-[#b06000] uppercase">Warning</span>
+                                </td>
+                                <td class="py-3 px-4 font-body-md text-body-md text-on-surface">W-304</td>
+                                <td class="py-3 px-4 font-body-md text-body-md text-on-surface">Sensor degraded performance (Dust).</td>
+                                </tr></tbody></table></div></div></section></main></body></html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html><html lang="en" class="light"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">try{
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                            "surface-bright": "#f8f9fa",
+                            "on-error": "#ffffff",
+                            "error": "#ba1a1a",
+                            "surface-container": "#edeeef",
+                            "on-surface-variant": "#414750",
+                            "primary-container": "#005a9c",
+                            "on-background": "#191c1d",
+                            "tertiary-container": "#27579d",
+                            "primary": "#004275",
+                            "tertiary-fixed-dim": "#abc7ff",
+                            "surface-container-lowest": "#ffffff",
+                            "on-primary-fixed": "#001c37",
+                            "secondary-fixed": "#dbe4ed",
+                            "outline": "#727781",
+                            "surface-container-highest": "#e1e3e4",
+                            "on-primary-container": "#afd1ff",
+                            "surface-tint": "#1261a3",
+                            "on-secondary-container": "#5b646b",
+                            "surface-dim": "#d9dadb",
+                            "on-tertiary-container": "#b7cfff",
+                            "secondary-fixed-dim": "#bfc8d0",
+                            "secondary": "#575f67",
+                            "on-tertiary-fixed-variant": "#0c458b",
+                            "surface-container-low": "#f3f4f5",
+                            "on-secondary": "#ffffff",
+                            "on-primary": "#ffffff",
+                            "on-tertiary-fixed": "#001b3f",
+                            "surface-container-high": "#e7e8e9",
+                            "on-tertiary": "#ffffff",
+                            "background": "#f8f9fa",
+                            "secondary-container": "#d8e1ea",
+                            "on-surface": "#191c1d",
+                            "inverse-on-surface": "#f0f1f2",
+                            "error-container": "#ffdad6",
+                            "tertiary": "#003f83",
+                            "on-secondary-fixed-variant": "#3f484f",
+                            "primary-fixed": "#d2e4ff",
+                            "on-error-container": "#93000a",
+                            "inverse-primary": "#a1c9ff",
+                            "on-secondary-fixed": "#141d23",
+                            "tertiary-fixed": "#d7e3ff",
+                            "surface-variant": "#e1e3e4",
+                            "on-primary-fixed-variant": "#00487f",
+                            "inverse-surface": "#2e3132",
+                            "primary-fixed-dim": "#a1c9ff",
+                            "outline-variant": "#c1c7d2",
+                            "surface": "#f8f9fa"
+                    },
+                    "borderRadius": {
+                            "DEFAULT": "0.25rem",
+                            "lg": "0.5rem",
+                            "xl": "0.75rem",
+                            "full": "9999px"
+                    },
+                    "spacing": {
+                            "sm": "8px",
+                            "lg": "24px",
+                            "xs": "4px",
+                            "md": "16px",
+                            "container-margin": "24px",
+                            "base": "4px",
+                            "xl": "32px",
+                            "gutter": "16px"
+                    },
+                    "fontFamily": {
+                            "label-lg": ["Inter"],
+                            "label-md": ["Inter"],
+                            "body-md": ["Inter"],
+                            "headline-lg-mobile": ["Inter"],
+                            "title-md": ["Inter"],
+                            "headline-lg": ["Inter"],
+                            "body-lg": ["Inter"],
+                            "title-lg": ["Inter"],
+                            "headline-sm": ["Inter"],
+                            "headline-md": ["Inter"],
+                            "display-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                            "label-lg": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}],
+                            "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
+                            "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
+                            "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                            "title-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.15px", "fontWeight": "500"}],
+                            "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                            "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400"}],
+                            "title-lg": ["22px", {"lineHeight": "28px", "fontWeight": "500"}],
+                            "headline-sm": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                            "headline-md": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                            "display-lg": ["57px", {"lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    }catch(_e){}</script></head><body class="bg-surface-bright text-on-surface antialiased min-h-screen">
+
+    <!-- Top-->
+    <header class="fixed top-0 w-full z-50 flex items-center justify-between px-md h-16 bg-surface border-b border-outline-variant">
+        <div class="flex items-center gap-md">
+            <button class="p-2 rounded-full hover:bg-surface-container-high transition-colors duration-200 text-on-surface-variant flex items-center justify-center">
+                <span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;">arrow_back</span>
+            </button>
+            <h1 class="font-headline-md text-headline-md font-bold text-primary">Shuttle Selection</h1>
+        </div>
+        <div class="flex items-center gap-sm text-primary">
+             <span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;">precision_manufacturing</span>
+        </div>
+    </header>
+
+    <!-- Main Content Canvas -->
+    <main class="pt-24 pb-lg px-gutter max-w-7xl mx-auto">
+        
+        <!-- Selection Mode Header -->
+        <div class="mb-lg">
+            <h2 class="font-title-lg text-title-lg text-on-surface mb-sm">Diagnostics Target</h2>
+            <p class="font-body-md text-body-md text-on-surface-variant">Select the scope for the diagnostic routine.</p>
+        </div>
+
+        <!-- Mode Selection Bento Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-md mb-xl">
+            <!-- Individual Selection (Active) -->
+            <button class="flex flex-col items-start p-lg rounded-xl border-2 border-primary bg-primary-container/10 transition-all hover:bg-primary-container/20 group text-left">
+                <div class="p-3 bg-primary text-on-primary rounded-lg mb-md shadow-sm group-hover:scale-105 transition-transform">
+                    <span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 1;">conveyor_belt</span>
+                </div>
+                <h3 class="font-title-lg text-title-lg text-primary font-semibold mb-xs">Individual Shuttle</h3>
+                <p class="font-body-md text-body-md text-on-surface-variant">Run targeted diagnostics on a specific shuttle unit.</p>
+            </button>
+
+            <!-- All Shuttles Selection -->
+            <button class="flex flex-col items-start p-lg rounded-xl border border-outline-variant bg-surface transition-all hover:bg-surface-container hover:border-outline group text-left">
+                <div class="p-3 bg-surface-variant text-on-surface-variant rounded-lg mb-md shadow-sm group-hover:scale-105 transition-transform">
+                    <span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;">account_tree</span>
+                </div>
+                <h3 class="font-title-lg text-title-lg text-on-surface font-semibold mb-xs">All Shuttles</h3>
+                <p class="font-body-md text-body-md text-on-surface-variant">Execute a comprehensive scan across the entire fleet.</p>
+            </button>
+        </div>
+
+        <!-- Shuttle List Section -->
+        <div class="mb-sm flex items-center justify-between">
+            <h2 class="font-title-md text-title-md text-on-surface font-semibold">Available Units</h2>
+            <span class="font-label-md text-label-md text-on-surface-variant bg-surface-container-high px-2 py-1 rounded-full">12 Units</span>
+        </div>
+
+        <!-- Interactive Grid for Shuttles -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-md pb-xl">
+            
+            <!-- Shuttle Card 01 -->
+            <div class="bg-surface border border-outline-variant rounded-xl p-md flex flex-col justify-between h-full hover:shadow-[0_2px_8px_rgba(0,0,0,0.05)] transition-shadow">
+                <div class="flex justify-between items-start mb-md">
+                    <div>
+                        <h4 class="font-title-md text-title-md font-semibold text-on-surface">Shuttle 01</h4>
+                        <p class="font-label-md text-label-md text-on-surface-variant">ID: SH-AX-001</p>
+                    </div>
+                    <div class="flex items-center gap-xs bg-[#E6F4EA] px-2 py-1 rounded-md">
+                        <span class="w-2 h-2 rounded-full bg-[#137333]"></span>
+                        <span class="font-label-md text-label-md text-[#137333] font-semibold">Online</span>
+                    </div>
+                </div>
+                
+                <div class="mt-auto pt-md border-t border-surface-variant">
+                    <button class="w-full h-11 bg-primary text-on-primary font-label-lg text-label-lg rounded hover:bg-primary/90 transition-colors flex items-center justify-center gap-sm">
+                        <span class="material-symbols-outlined text-[18px]">query_stats</span>
+                        View Diagnostics
+                    </button>
+                </div>
+            </div>
+
+            <!-- Shuttle Card 02 -->
+            <div class="bg-surface border border-outline-variant rounded-xl p-md flex flex-col justify-between h-full hover:shadow-[0_2px_8px_rgba(0,0,0,0.05)] transition-shadow">
+                <div class="flex justify-between items-start mb-md">
+                    <div>
+                        <h4 class="font-title-md text-title-md font-semibold text-on-surface">Shuttle 02</h4>
+                        <p class="font-label-md text-label-md text-on-surface-variant">ID: SH-AX-002</p>
+                    </div>
+                    <div class="flex items-center gap-xs bg-error-container px-2 py-1 rounded-md">
+                        <span class="w-2 h-2 rounded-full bg-error"></span>
+                        <span class="font-label-md text-label-md text-on-error-container font-semibold">Offline</span>
+                    </div>
+                </div>
+                
+                <div class="mt-auto pt-md border-t border-surface-variant">
+                    <button class="w-full h-11 bg-primary text-on-primary font-label-lg text-label-lg rounded hover:bg-primary/90 transition-colors flex items-center justify-center gap-sm">
+                        <span class="material-symbols-outlined text-[18px]">query_stats</span>
+                        View Diagnostics
+                    </button>
+                </div>
+            </div>
+
+            <!-- Shuttle Card 03 -->
+            <div class="bg-surface border border-outline-variant rounded-xl p-md flex flex-col justify-between h-full hover:shadow-[0_2px_8px_rgba(0,0,0,0.05)] transition-shadow">
+                <div class="flex justify-between items-start mb-md">
+                    <div>
+                        <h4 class="font-title-md text-title-md font-semibold text-on-surface">Shuttle 03</h4>
+                        <p class="font-label-md text-label-md text-on-surface-variant">ID: SH-AX-003</p>
+                    </div>
+                    <div class="flex items-center gap-xs bg-[#FFF8E1] px-2 py-1 rounded-md">
+                        <span class="w-2 h-2 rounded-full bg-[#F57F17]"></span>
+                        <span class="font-label-md text-label-md text-[#F57F17] font-semibold">Maintenance</span>
+                    </div>
+                </div>
+                
+                <div class="mt-auto pt-md border-t border-surface-variant">
+                    <button class="w-full h-11 border border-primary text-primary font-label-lg text-label-lg rounded hover:bg-surface-container transition-colors flex items-center justify-center gap-sm">
+                        <span class="material-symbols-outlined text-[18px]">build</span>
+                        Log Entry
+                    </button>
+                </div>
+            </div>
+
+             <!-- Shuttle Card 04 -->
+            <div class="bg-surface border border-outline-variant rounded-xl p-md flex flex-col justify-between h-full hover:shadow-[0_2px_8px_rgba(0,0,0,0.05)] transition-shadow">
+                <div class="flex justify-between items-start mb-md">
+                    <div>
+                        <h4 class="font-title-md text-title-md font-semibold text-on-surface">Shuttle 04</h4>
+                        <p class="font-label-md text-label-md text-on-surface-variant">ID: SH-BX-004</p>
+                    </div>
+                    <div class="flex items-center gap-xs bg-[#E6F4EA] px-2 py-1 rounded-md">
+                        <span class="w-2 h-2 rounded-full bg-[#137333]"></span>
+                        <span class="font-label-md text-label-md text-[#137333] font-semibold">Online</span>
+                    </div>
+                </div>
+                
+                <div class="mt-auto pt-md border-t border-surface-variant">
+                    <button class="w-full h-11 bg-primary text-on-primary font-label-lg text-label-lg rounded hover:bg-primary/90 transition-colors flex items-center justify-center gap-sm">
+                        <span class="material-symbols-outlined text-[18px]">query_stats</span>
+                        View Diagnostics
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Additional Empty slots to show grid layout potential in enterprise view -->
+            </div></main></body></html>

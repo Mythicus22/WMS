@@ -1,0 +1,281 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">try{
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ba1a1a",
+                        "surface-container": "#edeeef",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#bfc8d0",
+                        "primary-fixed-dim": "#a1c9ff",
+                        "on-tertiary-container": "#b7cfff",
+                        "on-background": "#191c1d",
+                        "background": "#f8f9fa",
+                        "primary-fixed": "#d2e4ff",
+                        "surface-dim": "#d9dadb",
+                        "inverse-primary": "#a1c9ff",
+                        "on-surface-variant": "#414750",
+                        "on-error": "#ffffff",
+                        "primary": "#004275",
+                        "surface": "#f8f9fa",
+                        "secondary": "#575f67",
+                        "primary-container": "#005a9c",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-primary-fixed": "#001c37",
+                        "on-primary-container": "#afd1ff",
+                        "on-error-container": "#93000a",
+                        "surface-tint": "#1261a3",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed-variant": "#00487f",
+                        "on-tertiary-fixed": "#001b3f",
+                        "surface-variant": "#e1e3e4",
+                        "secondary-container": "#d8e1ea",
+                        "on-secondary": "#ffffff",
+                        "on-secondary-fixed": "#141d23",
+                        "inverse-surface": "#2e3132",
+                        "outline-variant": "#c1c7d2",
+                        "on-tertiary-fixed-variant": "#0c458b",
+                        "tertiary-fixed-dim": "#abc7ff",
+                        "surface-container-low": "#f3f4f5",
+                        "surface-bright": "#f8f9fa",
+                        "inverse-on-surface": "#f0f1f2",
+                        "tertiary-fixed": "#d7e3ff",
+                        "outline": "#727781",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#5b646b",
+                        "tertiary-container": "#27579d",
+                        "tertiary": "#003f83",
+                        "secondary-fixed": "#dbe4ed",
+                        "on-secondary-fixed-variant": "#3f484f",
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#e7e8e9",
+                        "on-surface": "#191c1d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "8px",
+                        "gutter": "16px",
+                        "container-margin": "24px",
+                        "xs": "4px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "label-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "title-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "title-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400" }],
+                        "display-lg": ["57px", { "lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400" }],
+                        "title-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.15px", "fontWeight": "500" }],
+                        "headline-sm": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "title-lg": ["22px", { "lineHeight": "28px", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    }catch(_e){}</script></head><body class="bg-background text-on-surface min-h-screen flex flex-col">
+
+    <!-- TopAppBar -->
+    <header class="w-full top-0 sticky bg-surface dark:bg-surface-dim border-b border-outline-variant dark:border-outline flex justify-between items-center px-container-margin py-md z-50">
+        <div class="flex items-center gap-md">
+            <span class="material-symbols-outlined text-primary dark:text-primary-fixed-dim" style="font-variation-settings: &quot;FILL&quot; 0;" data-original-icon="inventory_2">inventory_2</span>
+            <div class="flex items-center gap-2">
+                 <img src="https://lh3.googleusercontent.com/aida/AP1WRLus8oiq7C-CvTQpvAQrm7ZPJIlaOfn6QCCsfUOuhGB6dda7TrUVCoiHn1GTfoEHdI-aCQBTPfoOxQuGFDrBOH1SSbK-AratcSBabjwQ6brCGBVp5ppFQkRbg0ejfeDV7-PnhC4ACcQ-FFJI1vuLh0ZxGfjmWsJcaJrqkUtam7Ct5z2P0TxJlz2I6RSZ3O3wBiYowTDWlvn03ROWJzAiZtezIVhjPiw71YhFMrP3yM_drxRB_YjyAM8FlcA" class="w-8 h-8 rounded-md object-cover border border-outline-variant" alt="Warehouse Operations Suite Logo">
+                <span class="font-headline-sm text-headline-sm font-bold text-primary dark:text-primary-fixed-dim hidden sm:block">Warehouse Pro</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-md">
+            <button class="p-2 rounded-full hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors active:scale-95 duration-150 text-on-surface-variant dark:text-on-surface-variant">
+                <span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;" data-original-icon="notifications">notifications</span>
+            </button>
+             <button class="p-2 rounded-full hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors active:scale-95 duration-150 text-on-surface-variant dark:text-on-surface-variant">
+                <span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;" data-original-icon="account_circle">account_circle</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Canvas -->
+    <main class="flex-grow p-container-margin md:px-[48px] max-w-[1440px] mx-auto w-full space-y-xl">
+
+        <!-- Warehouse Overview Section -->
+        <section aria-labelledby="overview-heading" class="space-y-lg">
+            <h2 id="overview-heading" class="font-title-lg text-title-lg text-on-surface">Warehouse Overview</h2>
+            
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-md">
+                
+                <!-- KPI Card 1 -->
+                <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col justify-between h-[120px]">
+                    <div class="flex justify-between items-start">
+                        <span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Total Shuttles</span>
+                        <span class="material-symbols-outlined text-secondary text-[20px]">conveyor_belt</span>
+                    </div>
+                    <div class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary">42</div>
+                </div>
+
+                <!-- KPI Card 2 -->
+                <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col justify-between h-[120px]">
+                    <div class="flex justify-between items-start">
+                        <span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Online</span>
+                        <span class="material-symbols-outlined text-[#14833D] text-[20px]">check_circle</span>
+                    </div>
+                    <div class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">38</div>
+                </div>
+
+                <!-- KPI Card 3 -->
+                <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col justify-between h-[120px]">
+                     <div class="flex justify-between items-start">
+                        <span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Offline</span>
+                        <span class="material-symbols-outlined text-error text-[20px]">cancel</span>
+                    </div>
+                    <div class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">4</div>
+                </div>
+
+                <!-- KPI Card 4 -->
+                <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col justify-between h-[120px]">
+                     <div class="flex justify-between items-start">
+                        <span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Active Faults</span>
+                        <span class="material-symbols-outlined text-[#D97706] text-[20px]">warning</span>
+                    </div>
+                    <div class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface">2</div>
+                </div>
+
+                <!-- KPI Card 5 (Status) -->
+                <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col justify-between h-[120px] col-span-2 md:col-span-1">
+                    <span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">System Status</span>
+                    <div class="bg-[#dcfce7] text-[#166534] px-sm py-xs rounded-full inline-flex items-center gap-xs self-start mt-auto border border-[#bbf7d0]">
+                        <span class="material-symbols-outlined text-[16px]" style="font-variation-settings: &quot;FILL&quot; 1;">check_circle</span>
+                        <span class="font-label-lg text-label-lg font-bold">HEALTHY</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Main Navigation Grid -->
+        <section aria-labelledby="nav-grid-heading" class="space-y-lg">
+             <h2 id="nav-grid-heading" class="sr-only">Main Menu</h2>
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+
+                <!-- Operator -->
+                <button class="group bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex items-start text-left gap-md hover:bg-surface-container-low transition-colors duration-200 active:scale-[0.99]">
+                    <div class="p-sm bg-primary-container/10 text-primary-container rounded-lg shrink-0">
+                        <span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;">joystick</span>
+                    </div>
+                    <div class="flex-grow">
+                        <h3 class="font-title-md text-title-md text-on-surface group-hover:text-primary transition-colors">Operator</h3>
+                        <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Operate and monitor shuttles in real time.</p>
+                    </div>
+                    <span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors mt-xs">arrow_forward_ios</span>
+                </button>
+
+                <!-- Maintenance -->
+                <button class="group bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex items-start text-left gap-md hover:bg-surface-container-low transition-colors duration-200 active:scale-[0.99]">
+                    <div class="p-sm bg-primary-container/10 text-primary-container rounded-lg shrink-0">
+                        <span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;">build</span>
+                    </div>
+                    <div class="flex-grow">
+                        <h3 class="font-title-md text-title-md text-on-surface group-hover:text-primary transition-colors">Maintenance</h3>
+                        <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Perform guided maintenance and testing.</p>
+                    </div>
+                    <span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors mt-xs">arrow_forward_ios</span>
+                </button>
+
+                <!-- Diagnostics -->
+                <button class="group bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex items-start text-left gap-md hover:bg-surface-container-low transition-colors duration-200 active:scale-[0.99]">
+                    <div class="p-sm bg-primary-container/10 text-primary-container rounded-lg shrink-0">
+                        <span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;">monitor_heart</span>
+                    </div>
+                    <div class="flex-grow">
+                        <h3 class="font-title-md text-title-md text-on-surface group-hover:text-primary transition-colors">Diagnostics</h3>
+                        <p class="font-body-md text-body-md text-on-surface-variant mt-xs">View engineering diagnostics and machine health.</p>
+                    </div>
+                    <span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors mt-xs">arrow_forward_ios</span>
+                </button>
+
+                <!-- Reports & Analytics -->
+                <button class="group bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex items-start text-left gap-md hover:bg-surface-container-low transition-colors duration-200 active:scale-[0.99]">
+                    <div class="p-sm bg-primary-container/10 text-primary-container rounded-lg shrink-0">
+                        <span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;">bar_chart</span>
+                    </div>
+                    <div class="flex-grow">
+                        <h3 class="font-title-md text-title-md text-on-surface group-hover:text-primary transition-colors">Reports &amp; Analytics</h3>
+                        <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Generate reports and analyze warehouse performance.</p>
+                    </div>
+                    <span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors mt-xs">arrow_forward_ios</span>
+                </button>
+                
+                <!-- Inventory -->
+                
+
+                <!-- Settings -->
+                <button class="group bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex items-start text-left gap-md hover:bg-surface-container-low transition-colors duration-200 active:scale-[0.99]">
+                    <div class="p-sm bg-surface-container-high text-on-surface-variant rounded-lg shrink-0">
+                        <span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 0;">settings</span>
+                    </div>
+                    <div class="flex-grow">
+                        <h3 class="font-title-md text-title-md text-on-surface group-hover:text-on-surface transition-colors">Settings</h3>
+                        <p class="font-body-md text-body-md text-on-surface-variant mt-xs">Configure system settings and shuttle management.</p>
+                    </div>
+                    <span class="material-symbols-outlined text-outline-variant group-hover:text-on-surface transition-colors mt-xs">arrow_forward_ios</span>
+                </button>
+
+             </div>
+        </section>
+
+        <!-- Recent Activity Section -->
+        <section aria-labelledby="activity-heading" class="space-y-md">
+            <div class="flex justify-between items-end pb-sm border-b border-outline-variant">
+                 
+                 
+            </div>
+            
+            <ul class="space-y-sm">
+                <!-- Activity 1 -->
+                
+
+                <!-- Activity 2 -->
+                
+
+                <!-- Activity 3 -->
+                
+
+                <!-- Activity 4 -->
+                
+            </ul>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full py-xl mt-auto bg-surface-container-lowest dark:bg-surface-dim border-t border-outline-variant dark:border-outline flex flex-col md:flex-row justify-between items-center px-container-margin gap-md">
+        <span class="font-label-lg text-label-lg font-semibold text-primary dark:text-primary-fixed-dim">Warehouse Pro</span>
+        <div class="flex items-center gap-lg">
+            <a href="#" class="font-label-md text-label-md text-on-secondary-container hover:text-primary dark:hover:text-primary-fixed underline transition-opacity duration-200">Privacy Policy</a>
+            <a href="#" class="font-label-md text-label-md text-on-secondary-container hover:text-primary dark:hover:text-primary-fixed underline transition-opacity duration-200">Support</a>
+            </div></footer>
+
+</body></html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Shuttle Management - Warehouse Operations Suite</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-container": "#27579d",
+                        "surface-dim": "#d9dadb",
+                        "surface-container": "#edeeef",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed-variant": "#00487f",
+                        "primary-fixed": "#d2e4ff",
+                        "inverse-primary": "#a1c9ff",
+                        "tertiary-fixed": "#d7e3ff",
+                        "on-tertiary-container": "#b7cfff",
+                        "error": "#ba1a1a",
+                        "surface-bright": "#f8f9fa",
+                        "inverse-surface": "#2e3132",
+                        "on-primary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "secondary-fixed": "#dbe4ed",
+                        "secondary": "#575f67",
+                        "on-secondary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-background": "#191c1d",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed-variant": "#3f484f",
+                        "surface": "#f8f9fa",
+                        "outline-variant": "#c1c7d2",
+                        "on-error-container": "#93000a",
+                        "on-primary-container": "#afd1ff",
+                        "tertiary": "#003f83",
+                        "on-tertiary-fixed-variant": "#0c458b",
+                        "inverse-on-surface": "#f0f1f2",
+                        "outline": "#727781",
+                        "secondary-fixed-dim": "#bfc8d0",
+                        "tertiary-fixed-dim": "#abc7ff",
+                        "background": "#f8f9fa",
+                        "on-secondary-container": "#5b646b",
+                        "surface-variant": "#e1e3e4",
+                        "surface-container-low": "#f3f4f5",
+                        "on-surface": "#191c1d",
+                        "primary-container": "#005a9c",
+                        "primary": "#004275",
+                        "surface-container-high": "#e7e8e9",
+                        "secondary-container": "#d8e1ea",
+                        "on-surface-variant": "#414750",
+                        "surface-tint": "#1261a3",
+                        "primary-fixed-dim": "#a1c9ff",
+                        "on-primary-fixed": "#001c37",
+                        "on-secondary-fixed": "#141d23",
+                        "on-tertiary-fixed": "#001b3f",
+                        "surface-container-highest": "#e1e3e4"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "base": "4px",
+                        "sm": "8px",
+                        "gutter": "16px",
+                        "xs": "4px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "xl": "32px",
+                        "container-margin": "24px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "title-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "title-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "label-lg": ["Inter"],
+                        "headline-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400" }],
+                        "display-lg": ["57px", { "lineHeight": "64px", "letterSpacing": "-0.25px", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400" }],
+                        "title-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0.15px", "fontWeight": "500" }],
+                        "headline-md": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "600" }],
+                        "title-lg": ["22px", { "lineHeight": "28px", "fontWeight": "500" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500" }],
+                        "headline-sm": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .table-row-hover:hover {
+            background-color: #E7F1FF;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col">
+<!-- Top App Bar -->
+<header class="bg-surface border-b border-outline-variant flex justify-between items-center w-full px-md h-14 sticky top-0 z-50">
+<div class="flex items-center gap-md">
+<button class="text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_back</span>
+</button>
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary">Shuttle Management</h1>
+</div>
+<div class="flex items-center">
+<button class="text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-grow p-container-margin md:p-lg lg:p-xl max-w-[1600px] mx-auto w-full flex flex-col gap-lg">
+<!-- Status Overview Cards -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-md">
+<div class="bg-surface rounded-xl border border-outline-variant p-md flex flex-col gap-sm">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Total Shuttles</span>
+<div class="flex items-end gap-sm">
+<span class="font-headline-lg text-headline-lg text-primary">24</span>
+<span class="font-body-md text-body-md text-secondary pb-1">Registered</span>
+</div>
+</div>
+<div class="bg-surface rounded-xl border border-outline-variant p-md flex flex-col gap-sm">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Online</span>
+<div class="flex items-end gap-sm">
+<span class="font-headline-lg text-headline-lg text-[#198754]">22</span>
+<span class="font-body-md text-body-md text-secondary pb-1">Active</span>
+</div>
+</div>
+<div class="bg-surface rounded-xl border border-outline-variant p-md flex flex-col gap-sm">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Offline</span>
+<div class="flex items-end gap-sm">
+<span class="font-headline-lg text-headline-lg text-error">2</span>
+<span class="font-body-md text-body-md text-secondary pb-1">Requires Attention</span>
+</div>
+</div>
+<div class="bg-surface rounded-xl border border-outline-variant p-md flex flex-col gap-sm">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Avg Battery</span>
+<div class="flex items-end gap-sm">
+<span class="font-headline-lg text-headline-lg text-primary">87%</span>
+<span class="font-body-md text-body-md text-secondary pb-1">Fleet wide</span>
+</div>
+</div>
+</div>
+<!-- Shuttle Registry Table -->
+<section class="bg-surface rounded-xl border border-outline-variant flex flex-col overflow-hidden">
+<div class="px-md py-sm border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+<h2 class="font-title-lg text-title-lg text-on-surface">Registered Shuttles</h2>
+<div class="flex gap-sm">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface border border-outline-variant rounded-lg text-body-md font-body-md focus:border-primary focus:ring-1 focus:ring-primary w-64" placeholder="Search ID or IP..." type="text">
+</div>
+<button class="bg-primary text-on-primary font-label-lg text-label-lg px-4 py-2 rounded-lg hover:bg-primary-container hover:text-on-primary-container transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">add</span> Register
+                    </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-lowest sticky top-0 z-10 border-b border-outline-variant">
+<tr>
+<th class="p-sm font-label-md text-label-md text-on-surface-variant uppercase">Shuttle Name</th>
+<th class="p-sm font-label-md text-label-md text-on-surface-variant uppercase">ID</th>
+<th class="p-sm font-label-md text-label-md text-on-surface-variant uppercase">PLC IP</th>
+<th class="p-sm font-label-md text-label-md text-on-surface-variant uppercase">Status</th>
+<th class="p-sm font-label-md text-label-md text-on-surface-variant uppercase">Firmware</th>
+<th class="p-sm font-label-md text-label-md text-on-surface-variant uppercase">Battery</th>
+<th class="p-sm font-label-md text-label-md text-on-surface-variant uppercase">Comm Status</th>
+<th class="p-sm font-label-md text-label-md text-on-surface-variant uppercase">Last Connected</th>
+<th class="p-sm font-label-md text-label-md text-on-surface-variant uppercase text-center">Actions</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md divide-y divide-outline-variant">
+<!-- Row 1 -->
+<tr class="table-row-hover h-10 transition-colors">
+<td class="p-sm font-title-md text-title-md text-on-surface">Alpha-01</td>
+<td class="p-sm text-on-surface-variant">SH-1045</td>
+<td class="p-sm font-mono text-xs text-on-surface-variant">192.168.1.101</td>
+<td class="p-sm">
+<span class="bg-[#d1e7dd] text-[#0f5132] px-2 py-0.5 rounded text-xs font-medium border border-[#badbcc]">Online</span>
+</td>
+<td class="p-sm text-on-surface-variant">v2.4.1</td>
+<td class="p-sm">
+<div class="flex items-center gap-2">
+<span class="w-8">92%</span>
+<div class="w-16 h-1.5 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 92%"></div>
+</div>
+</div>
+</td>
+<td class="p-sm text-on-surface-variant">Stable (MQTT)</td>
+<td class="p-sm text-on-surface-variant text-xs">Just now</td>
+<td class="p-sm text-center">
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="table-row-hover h-10 transition-colors">
+<td class="p-sm font-title-md text-title-md text-on-surface">Beta-04</td>
+<td class="p-sm text-on-surface-variant">SH-1048</td>
+<td class="p-sm font-mono text-xs text-on-surface-variant">192.168.1.104</td>
+<td class="p-sm">
+<span class="bg-[#f8d7da] text-[#842029] px-2 py-0.5 rounded text-xs font-medium border border-[#f5c2c7]">Offline</span>
+</td>
+<td class="p-sm text-on-surface-variant">v2.3.9</td>
+<td class="p-sm">
+<div class="flex items-center gap-2">
+<span class="w-8 text-error">12%</span>
+<div class="w-16 h-1.5 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-error" style="width: 12%"></div>
+</div>
+</div>
+</td>
+<td class="p-sm text-error">Timeout</td>
+<td class="p-sm text-on-surface-variant text-xs">2 hours ago</td>
+<td class="p-sm text-center">
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="table-row-hover h-10 transition-colors">
+<td class="p-sm font-title-md text-title-md text-on-surface">Gamma-12</td>
+<td class="p-sm text-on-surface-variant">SH-1056</td>
+<td class="p-sm font-mono text-xs text-on-surface-variant">192.168.1.112</td>
+<td class="p-sm">
+<span class="bg-[#d1e7dd] text-[#0f5132] px-2 py-0.5 rounded text-xs font-medium border border-[#badbcc]">Online</span>
+</td>
+<td class="p-sm text-on-surface-variant">v2.4.1</td>
+<td class="p-sm">
+<div class="flex items-center gap-2">
+<span class="w-8">78%</span>
+<div class="w-16 h-1.5 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 78%"></div>
+</div>
+</div>
+</td>
+<td class="p-sm text-on-surface-variant">Stable (MQTT)</td>
+<td class="p-sm text-on-surface-variant text-xs">1 min ago</td>
+<td class="p-sm text-center">
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="table-row-hover h-10 transition-colors">
+<td class="p-sm font-title-md text-title-md text-on-surface">Delta-02</td>
+<td class="p-sm text-on-surface-variant">SH-1022</td>
+<td class="p-sm font-mono text-xs text-on-surface-variant">192.168.1.122</td>
+<td class="p-sm">
+<span class="bg-[#d1e7dd] text-[#0f5132] px-2 py-0.5 rounded text-xs font-medium border border-[#badbcc]">Online</span>
+</td>
+<td class="p-sm text-on-surface-variant">v2.4.1</td>
+<td class="p-sm">
+<div class="flex items-center gap-2">
+<span class="w-8">100%</span>
+<div class="w-16 h-1.5 bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 100%"></div>
+</div>
+</div>
+</td>
+<td class="p-sm text-on-surface-variant">Charging</td>
+<td class="p-sm text-on-surface-variant text-xs">Just now</td>
+<td class="p-sm text-center">
+<button class="text-secondary hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">more_vert</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-md py-sm border-t border-outline-variant bg-surface-container-lowest flex justify-between items-center text-on-surface-variant text-label-md">
+<span>Showing 1-4 of 24 shuttles</span>
+<div class="flex gap-2">
+<button class="px-2 py-1 border border-outline-variant rounded hover:bg-surface-variant transition-colors disabled:opacity-50">Prev</button>
+<button class="px-2 py-1 border border-outline-variant rounded hover:bg-surface-variant transition-colors">Next</button>
+</div>
+</div>
+</section>
+<!-- Operational Actions Grid -->
+<section class="flex flex-col gap-md">
+<h3 class="font-title-lg text-title-lg text-on-surface">Management Actions</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-sm">
+<!-- Category: Lifecycle -->
+<button class="bg-surface hover:bg-surface-container-low border border-outline-variant rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center transition-all hover:shadow-sm group h-32">
+<div class="w-10 h-10 rounded-full bg-primary-fixed text-on-primary-fixed flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">add_box</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface">Register New Shuttle</span>
+</button>
+<button class="bg-surface hover:bg-surface-container-low border border-outline-variant rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center transition-all hover:shadow-sm group h-32">
+<div class="w-10 h-10 rounded-full bg-error-container text-on-error-container flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">delete</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface">Remove Existing Shuttle</span>
+</button>
+<!-- Category: Identity -->
+<button class="bg-surface hover:bg-surface-container-low border border-outline-variant rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center transition-all hover:shadow-sm group h-32">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">edit_square</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface">Rename Shuttle</span>
+</button>
+<button class="bg-surface hover:bg-surface-container-low border border-outline-variant rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center transition-all hover:shadow-sm group h-32">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">info</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface">Edit Shuttle Info</span>
+</button>
+<button class="bg-surface hover:bg-surface-container-low border border-outline-variant rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center transition-all hover:shadow-sm group h-32">
+<div class="w-10 h-10 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">badge</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface">Assign Shuttle ID</span>
+</button>
+<!-- Category: Network & PLC -->
+<button class="bg-surface hover:bg-surface-container-low border border-outline-variant rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center transition-all hover:shadow-sm group h-32">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">dns</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface">Configure PLC IP</span>
+</button>
+<button class="bg-surface hover:bg-surface-container-low border border-outline-variant rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center transition-all hover:shadow-sm group h-32">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">router</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface">Configure MQTT Topics</span>
+</button>
+<button class="bg-surface hover:bg-surface-container-low border border-outline-variant rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center transition-all hover:shadow-sm group h-32">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">settings_input_component</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface">Comm Parameters</span>
+</button>
+<button class="bg-surface hover:bg-surface-container-low border border-outline-variant rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center transition-all hover:shadow-sm group h-32">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">wifi</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface">View Connection Status</span>
+</button>
+<button class="bg-surface hover:bg-surface-container-low border border-outline-variant rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center transition-all hover:shadow-sm group h-32">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">memory</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface">View PLC Information</span>
+</button>
+<!-- Category: Diagnostics & Sync -->
+<button class="bg-surface hover:bg-surface-container-low border border-outline-variant rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center transition-all hover:shadow-sm group h-32">
+<div class="w-10 h-10 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">update</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface">View Firmware Ver.</span>
+</button>
+<button class="bg-surface hover:bg-surface-container-low border border-outline-variant rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center transition-all hover:shadow-sm group h-32">
+<div class="w-10 h-10 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">history</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface">Last Comm Time</span>
+</button>
+<button class="bg-surface hover:bg-surface-container-low border border-outline-variant rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center transition-all hover:shadow-sm group h-32">
+<div class="w-10 h-10 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">restart_alt</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface">Restart Communication</span>
+</button>
+<button class="bg-surface hover:bg-surface-container-low border border-outline-variant rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center transition-all hover:shadow-sm group h-32">
+<div class="w-10 h-10 rounded-full bg-surface-variant text-on-surface-variant flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">network_ping</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface">Test Connectivity</span>
+</button>
+<button class="bg-surface hover:bg-surface-container-low border border-outline-variant rounded-xl p-md flex flex-col items-center justify-center gap-sm text-center transition-all hover:shadow-sm group h-32">
+<div class="w-10 h-10 rounded-full bg-primary-fixed-dim text-on-primary-fixed flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">sync</span>
+</div>
+<span class="font-label-lg text-label-lg text-on-surface">Sync Configuration</span>
+</button>
+</div>
+</section>
+</main>
+</body></html>

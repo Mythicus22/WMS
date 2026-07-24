@@ -1,0 +1,288 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Login - Warehouse Operations Suite</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed": "#dbe4ed",
+                      "on-surface-variant": "#414750",
+                      "outline": "#727781",
+                      "surface-container-low": "#f3f4f5",
+                      "on-tertiary-fixed-variant": "#0c458b",
+                      "on-secondary": "#ffffff",
+                      "surface-variant": "#e1e3e4",
+                      "surface-container-lowest": "#ffffff",
+                      "surface-bright": "#f8f9fa",
+                      "surface-tint": "#1261a3",
+                      "on-tertiary-container": "#b7cfff",
+                      "secondary-fixed-dim": "#bfc8d0",
+                      "error-container": "#ffdad6",
+                      "on-tertiary": "#ffffff",
+                      "tertiary-container": "#27579d",
+                      "primary-container": "#005a9c",
+                      "background": "#f8f9fa",
+                      "on-secondary-fixed-variant": "#3f484f",
+                      "on-primary-fixed-variant": "#00487f",
+                      "surface": "#f8f9fa",
+                      "on-surface": "#191c1d",
+                      "surface-container-highest": "#e1e3e4",
+                      "on-primary-fixed": "#001c37",
+                      "surface-container": "#edeeef",
+                      "primary": "#004275",
+                      "on-background": "#191c1d",
+                      "inverse-primary": "#a1c9ff",
+                      "primary-fixed-dim": "#a1c9ff",
+                      "on-secondary-container": "#5b646b",
+                      "outline-variant": "#c1c7d2",
+                      "on-tertiary-fixed": "#001b3f",
+                      "surface-container-high": "#e7e8e9",
+                      "error": "#ba1a1a",
+                      "secondary-container": "#d8e1ea",
+                      "secondary": "#575f67",
+                      "tertiary-fixed-dim": "#abc7ff",
+                      "on-primary-container": "#afd1ff",
+                      "inverse-surface": "#2e3132",
+                      "on-error-container": "#93000a",
+                      "on-error": "#ffffff",
+                      "tertiary-fixed": "#d7e3ff",
+                      "tertiary": "#003f83",
+                      "surface-dim": "#d9dadb",
+                      "on-secondary-fixed": "#141d23",
+                      "on-primary": "#ffffff",
+                      "inverse-on-surface": "#f0f1f2",
+                      "primary-fixed": "#d2e4ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "sm": "8px",
+                      "gutter": "16px",
+                      "lg": "24px",
+                      "container-margin": "24px",
+                      "xl": "32px",
+                      "base": "4px",
+                      "md": "16px",
+                      "xs": "4px"
+              },
+              "fontFamily": {
+                      "label-md": [
+                              "Inter"
+                      ],
+                      "display-lg": [
+                              "Inter"
+                      ],
+                      "label-lg": [
+                              "Inter"
+                      ],
+                      "headline-lg-mobile": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "body-lg": [
+                              "Inter"
+                      ],
+                      "title-lg": [
+                              "Inter"
+                      ],
+                      "title-md": [
+                              "Inter"
+                      ],
+                      "headline-lg": [
+                              "Inter"
+                      ],
+                      "headline-sm": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "label-md": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.5px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-lg": [
+                              "57px",
+                              {
+                                      "lineHeight": "64px",
+                                      "letterSpacing": "-0.25px",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-lg": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.1px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "28px",
+                              {
+                                      "lineHeight": "36px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-md": [
+                              "28px",
+                              {
+                                      "lineHeight": "36px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-lg": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "letterSpacing": "0.5px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "title-lg": [
+                              "22px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "title-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "letterSpacing": "0.15px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-sm": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.25px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+      </style>
+</head>
+<body class="bg-background min-h-screen flex flex-col items-center justify-center font-body-lg text-on-surface">
+<main class="w-full max-w-md px-gutter flex flex-col items-center gap-lg">
+<!-- Header Section -->
+<div class="flex flex-col items-center text-center gap-sm w-full">
+<img alt="Warehouse Operations Suite Logo" class="h-[120px] w-[120px] object-contain mb-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrK8wtXqki40qwmg09XGUBjJepdLIHdQ4LEspTtVRK2N3uZx2yoylZWWZiHr7XO2h8OMbbTBCMIBkZ4kvqRYFraUg1vrkQFlj56g7xXAcVb5bqMJ26WgYZXUVoIMY-ZXgohg8ZDWSuc0-cVaEIrTfz8RtDKoIaDxEYJguwB1kaRmNpmIO4B3B10wPTeYEkjm6pa0XqTG_3B2I0Jvbe3VvTacu3RjE4AZj0sSJJ9xinwH05gZhRd4YZ3Q">
+<h1 class="font-headline-md text-headline-md text-primary">Warehouse Operations Suite</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Industrial Radio Shuttle Management Platform</p>
+</div>
+<!-- Login Form Card -->
+<div class="bg-surface-container-lowest w-full rounded-lg border border-surface-variant p-lg shadow-sm">
+<form class="flex flex-col gap-md">
+<!-- Customer ID Input -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-lg text-label-lg text-on-surface" for="customerId">User ID</label>
+<div class="relative">
+<input class="w-full h-[44px] px-sm py-sm border border-outline rounded bg-transparent text-on-surface placeholder:text-outline-variant focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none font-body-md text-body-md transition-colors" id="customerId" placeholder="Enter Customer ID" type="text">
+</div>
+</div>
+<!-- Password Input -->
+<div class="flex flex-col gap-xs">
+<label class="font-label-lg text-label-lg text-on-surface" for="password">Password</label>
+<div class="relative flex items-center">
+<input class="w-full h-[44px] pl-sm pr-10 py-sm border border-outline rounded bg-transparent text-on-surface placeholder:text-outline-variant focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none font-body-md text-body-md transition-colors" id="password" placeholder="Enter Password" type="password">
+<button aria-label="Toggle password visibility" class="absolute right-sm text-on-surface-variant hover:text-on-surface" type="button">
+<span class="material-symbols-outlined text-[20px]" data-icon="visibility_off">visibility_off</span>
+</button>
+</div>
+</div>
+<!-- Remember Me Checkbox -->
+<div class="flex items-center gap-sm mt-xs">
+<input class="w-4 h-4 rounded border-outline text-primary focus:ring-primary bg-transparent cursor-pointer" id="rememberMe" type="checkbox">
+<label class="font-body-md text-body-md text-on-surface cursor-pointer select-none" for="rememberMe">Remember Me</label>
+</div>
+<!-- Sign In Button -->
+<button class="w-full h-[44px] bg-primary text-on-primary font-label-lg text-label-lg rounded flex items-center justify-center mt-sm hover:bg-on-primary-fixed-variant active:opacity-80 transition-colors" type="submit">
+                    Sign In
+                </button>
+</form>
+</div>
+<!-- Footer Section -->
+<div class="flex flex-col items-center text-center gap-xs mt-lg">
+<p class="font-label-md text-label-md text-secondary">v1.0.0-build.2024.01</p>
+<p class="font-label-md text-label-md text-secondary">© 2024 Industrial Dynamics Corp. All rights reserved.</p>
+</div>
+</main>
+<script>
+        // Simple password toggle interaction
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleBtn = document.querySelector('button[aria-label="Toggle password visibility"]');
+            const passwordInput = document.getElementById('password');
+            const iconSpan = toggleBtn.querySelector('.material-symbols-outlined');
+
+            toggleBtn.addEventListener('click', () => {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    iconSpan.textContent = 'visibility';
+                    iconSpan.setAttribute('data-icon', 'visibility');
+                } else {
+                    passwordInput.type = 'password';
+                    iconSpan.textContent = 'visibility_off';
+                    iconSpan.setAttribute('data-icon', 'visibility_off');
+                }
+            });
+        });
+    </script>
+
+
+</body></html>
