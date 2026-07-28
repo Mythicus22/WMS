@@ -6,12 +6,22 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.sqldelight)
+}
+
+sqldelight {
+    databases {
+        create("AppDatabase") {
+            packageName.set("com.example.myapplication.shared.database")
+            srcDirs.setFrom("src/commonMain/sqldelight")
+        }
+    }
 }
 
 kotlin {
     jvm()
     
-    android {
+    androidLibrary {
        namespace = "com.example.myapplication.shared"
        compileSdk = libs.versions.android.compileSdk.get().toInt()
        minSdk = libs.versions.android.minSdk.get().toInt()
@@ -19,16 +29,9 @@ kotlin {
        compilerOptions {
            jvmTarget = JvmTarget.JVM_11
        }
-       androidResources {
-           enable = true
-       }
        withHostTest {
-           isIncludeAndroidResources = true
        }
        withDeviceTestBuilder {
-           sourceSetTreeName = "test"
-       }.configure {
-           instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
        }
     }
     
@@ -36,11 +39,13 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
+            implementation(libs.sqldelight.android.driver)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
+            implementation(libs.compose.material.icons.extended)
             implementation(libs.compose.ui)
             implementation(libs.compose.components.resources)
             implementation(libs.compose.uiToolingPreview)
@@ -50,11 +55,17 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.napier)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.androidx.datastore.preferences)
+            implementation(libs.sqldelight.coroutines.extensions)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+        jvmMain.dependencies {
+            implementation(libs.sqldelight.sqlite.driver)
+        }
     }
+
 }
 
 dependencies {

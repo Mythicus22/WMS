@@ -7,7 +7,10 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import org.koin.core.context.startKoin
+import org.koin.android.ext.koin.androidContext
+import org.koin.dsl.module
 import com.example.myapplication.shared.core.di.sharedModule
+import com.example.myapplication.shared.data.local.database.DriverFactory
 import com.example.myapplication.shared.core.logging.Logger
 
 class MainActivity : ComponentActivity() {
@@ -18,9 +21,12 @@ class MainActivity : ComponentActivity() {
         // Initialize shared logging
         Logger.init()
 
-        // Start Koin with shared DI modules (no Android-specific bindings required at Phase 0)
+        // Start Koin with shared DI modules and Android-specific DriverFactory
         startKoin {
-            modules(sharedModule)
+            androidContext(this@MainActivity)
+            modules(sharedModule, module {
+                single { DriverFactory(androidContext()) }
+            })
         }
 
         setContent {

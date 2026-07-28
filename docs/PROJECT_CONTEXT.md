@@ -92,6 +92,9 @@ Project setup and architecture foundation.
 Phase 1
 Application skeleton, navigation, theme, reusable UI components, base architecture.
 
+Phase 2
+Authentication, Room Database setup, DataStore session manager, SHA-256 hashing, User Management & Checkbox Permissions.
+
 ---
 
 # Development Roadmap

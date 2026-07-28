@@ -1,0 +1,37 @@
+CREATE TABLE UserEntity (
+    id TEXT PRIMARY KEY NOT NULL,
+    username TEXT NOT NULL UNIQUE,
+    passwordHash TEXT NOT NULL,
+    role TEXT NOT NULL,
+    grantedFeaturesCsv TEXT NOT NULL,
+    grantedSettingsCsv TEXT NOT NULL,
+    createdAt INTEGER NOT NULL
+);
+
+insertUser:
+INSERT OR REPLACE INTO UserEntity(id, username, passwordHash, role, grantedFeaturesCsv, grantedSettingsCsv, createdAt)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+getUserByUsername:
+SELECT * FROM UserEntity WHERE username = ?;
+
+getUserById:
+SELECT * FROM UserEntity WHERE id = ?;
+
+getAllUsers:
+SELECT * FROM UserEntity;
+
+updateUser:
+UPDATE UserEntity
+SET username = ?,
+    passwordHash = ?,
+    role = ?,
+    grantedFeaturesCsv = ?,
+    grantedSettingsCsv = ?
+WHERE id = ?;
+
+deleteUserById:
+DELETE FROM UserEntity WHERE id = ?;
+
+getUserCount:
+SELECT count(*) FROM UserEntity;
