@@ -66,9 +66,6 @@ shared
 - features
 - presentation
 - analytics
-- reports
-- resources
-- docs
 
 Every feature follows the same structure:
 
@@ -76,6 +73,7 @@ Every feature follows the same structure:
 - viewmodel
 - repository
 - domain
+- di
 - navigation
 - model
 - components

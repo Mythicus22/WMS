@@ -85,8 +85,7 @@ fun UserManagementScreen(
         // App Header Toolbar
         AppToolbar(
             title = "User Directory & RBAC",
-            navigationIcon = Icons.Default.ArrowBack,
-            onNavigationClick = { navigator.navigateTo(Screen.Dashboard) },
+            onNavigationClick = { navigator.goBack() },
             actions = {
                 IconButton(onClick = { viewModel.onEvent(UserManagementUiEvent.OnAddUserClicked) }) {
                     Icon(
@@ -467,6 +466,40 @@ private fun UserEditorDialog(
 
                 Spacer(modifier = Modifier.height(AppDimensions.spacing20))
 
+                var showAdminConfirmationDialog by remember { mutableStateOf(false) }
+
+                if (showAdminConfirmationDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showAdminConfirmationDialog = false },
+                        title = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(imageVector = Icons.Default.Warning, contentDescription = null, tint = AppColors.Error)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Confirm Admin Powers", fontWeight = FontWeight.Bold)
+                            }
+                        },
+                        text = {
+                            Text("Warning: Granting 'User Management (Admin Powers)' permits this account to manage all system users, modify roles, and grant permissions. Are you sure you want to proceed?")
+                        },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    selectedFeatures = selectedFeatures + FeaturePermission.USER_MANAGEMENT
+                                    showAdminConfirmationDialog = false
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = AppColors.Error)
+                            ) {
+                                Text("Grant Admin Powers")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showAdminConfirmationDialog = false }) {
+                                Text("Cancel")
+                            }
+                        }
+                    )
+                }
+
                 // Feature Permissions Checkboxes
                 Text(
                     text = "Granted Feature Modules",
@@ -481,7 +514,77 @@ private fun UserEditorDialog(
 
                 Spacer(modifier = Modifier.height(AppDimensions.spacing8))
 
-                FeaturePermission.entries.forEach { feature ->
+                // Highlighted Admin Powers Checkbox (User Management) at the top
+                val isAdminPowerChecked = selectedFeatures.contains(FeaturePermission.USER_MANAGEMENT)
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                        .border(
+                            width = 1.dp,
+                            color = AppColors.Error.copy(alpha = 0.3f),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .clickable {
+                            if (!isAdminPowerChecked) {
+                                showAdminConfirmationDialog = true
+                            } else {
+                                selectedFeatures = selectedFeatures - FeaturePermission.USER_MANAGEMENT
+                            }
+                        },
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = AppColors.Error.copy(alpha = 0.12f))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = AppDimensions.spacing8, vertical = AppDimensions.spacing8),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = isAdminPowerChecked,
+                            onCheckedChange = { checked ->
+                                if (checked == true) {
+                                    showAdminConfirmationDialog = true
+                                } else {
+                                    selectedFeatures = selectedFeatures - FeaturePermission.USER_MANAGEMENT
+                                }
+                            },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = AppColors.Error,
+                                checkmarkColor = Color.White
+                            )
+                        )
+                        Spacer(modifier = Modifier.width(AppDimensions.spacing4))
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Shield,
+                                    contentDescription = null,
+                                    tint = AppColors.Error,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "User Management (Admin Powers)",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = AppColors.Error
+                                )
+                            }
+                            Text(
+                                text = "Grants full administrative privileges (create, edit, delete users and grant permissions).",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(AppDimensions.spacing4))
+
+                // Remaining Feature Permissions Checkboxes
+                FeaturePermission.entries.filterNot { it == FeaturePermission.USER_MANAGEMENT }.forEach { feature ->
                     val isChecked = selectedFeatures.contains(feature)
                     Row(
                         modifier = Modifier

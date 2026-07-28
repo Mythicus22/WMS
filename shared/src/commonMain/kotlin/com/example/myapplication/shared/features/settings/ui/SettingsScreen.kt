@@ -58,8 +58,7 @@ fun SettingsScreen(
     ) {
         AppToolbar(
             title = "Settings",
-            navigationIcon = Icons.Default.ArrowBack,
-            onNavigationClick = { navigator.navigateTo(Screen.Dashboard) }
+            onNavigationClick = { navigator.goBack() }
         )
 
         Column(

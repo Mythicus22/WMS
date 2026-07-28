@@ -17,6 +17,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.example.myapplication.shared.presentation.theme.AppDimensions
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
+
 @Composable
 fun AppToolbar(
     title: String,
@@ -25,6 +29,8 @@ fun AppToolbar(
     onNavigationClick: (() -> Unit)? = null,
     actions: @Composable () -> Unit = {}
 ) {
+    val effectiveIcon = navigationIcon ?: if (onNavigationClick != null) Icons.AutoMirrored.Filled.ArrowBack else null
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -43,18 +49,18 @@ fun AppToolbar(
                 horizontalArrangement = Arrangement.Start,
                 modifier = Modifier.weight(1f)
             ) {
-                if (navigationIcon != null && onNavigationClick != null) {
+                if (effectiveIcon != null && onNavigationClick != null) {
                     IconButton(onClick = onNavigationClick) {
                         Icon(
-                            imageVector = navigationIcon,
-                            contentDescription = "Navigation",
+                            imageVector = effectiveIcon,
+                            contentDescription = "Back",
                             tint = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             }

@@ -15,7 +15,10 @@ import com.example.myapplication.shared.features.dashboard.ui.DashboardScreen
 import com.example.myapplication.shared.features.dashboard.viewmodel.DashboardViewModel
 import com.example.myapplication.shared.features.diagnostics.ui.DiagnosticsScreen
 import com.example.myapplication.shared.features.maintenance.ui.MaintenanceScreen
+import com.example.myapplication.shared.features.operator.ui.OperatorConsoleScreen
 import com.example.myapplication.shared.features.operator.ui.OperatorScreen
+import com.example.myapplication.shared.features.operator.viewmodel.OperatorConsoleViewModel
+import com.example.myapplication.shared.features.operator.viewmodel.OperatorViewModel
 import com.example.myapplication.shared.features.reports.ui.ReportsScreen
 import com.example.myapplication.shared.features.settings.ui.SettingsScreen
 import com.example.myapplication.shared.features.settings.viewmodel.SettingsViewModel
@@ -56,8 +59,31 @@ fun AppNavHost(navigator: Navigator) {
                 val dashboardViewModel: DashboardViewModel = remember { getKoin().get() }
                 DashboardScreen(navigator = navigator, viewModel = dashboardViewModel)
             }
-            is Screen.Shuttle -> ShuttleScreen(navigator)
-            is Screen.Operator -> OperatorScreen(navigator)
+            is Screen.Shuttle -> {
+                val shuttleViewModel: com.example.myapplication.shared.features.shuttle.viewmodel.ShuttleViewModel = remember { getKoin().get() }
+                ShuttleScreen(navigator = navigator, viewModel = shuttleViewModel)
+            }
+            is Screen.AddEditShuttle -> {
+                val addEditShuttleViewModel: com.example.myapplication.shared.features.shuttle.viewmodel.AddEditShuttleViewModel = remember { getKoin().get() }
+                com.example.myapplication.shared.features.shuttle.ui.AddEditShuttleScreen(
+                    navigator = navigator,
+                    viewModel = addEditShuttleViewModel,
+                    shuttleId = (screenState as Screen.AddEditShuttle).id
+                )
+            }
+
+            is Screen.Operator -> {
+                val operatorViewModel: OperatorViewModel = remember { getKoin().get() }
+                OperatorScreen(navigator = navigator, viewModel = operatorViewModel)
+            }
+            is Screen.OperatorConsole -> {
+                val operatorConsoleViewModel: OperatorConsoleViewModel = remember { getKoin().get() }
+                OperatorConsoleScreen(
+                    navigator = navigator,
+                    viewModel = operatorConsoleViewModel,
+                    shuttleId = (screenState as Screen.OperatorConsole).shuttleId
+                )
+            }
             is Screen.Diagnostics -> DiagnosticsScreen(navigator)
             is Screen.Maintenance -> MaintenanceScreen(navigator)
             is Screen.Reports -> ReportsScreen(navigator)

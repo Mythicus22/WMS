@@ -140,14 +140,14 @@ fun DashboardScreen(
             ) {
                 MetricCard(
                     title = "TOTAL SHUTTLES",
-                    value = "42",
+                    value = currentState.totalShuttles.toString(),
                     icon = Icons.Default.OpenInFull,
                     iconTint = AppColors.Primary,
                     modifier = Modifier.weight(1f)
                 )
                 MetricCard(
                     title = "ONLINE",
-                    value = "38",
+                    value = currentState.onlineShuttles.toString(),
                     icon = Icons.Default.CheckCircle,
                     iconTint = AppColors.Success,
                     modifier = Modifier.weight(1f)
@@ -162,7 +162,7 @@ fun DashboardScreen(
             ) {
                 MetricCard(
                     title = "OFFLINE",
-                    value = "4",
+                    value = currentState.offlineShuttles.toString(),
                     icon = Icons.Default.MonitorHeart,
                     iconTint = MaterialTheme.colorScheme.outline,
                     modifier = Modifier.weight(1f)
@@ -240,7 +240,7 @@ fun DashboardScreen(
                                 FeaturePermission.REPORTS -> navigator.navigateTo(Screen.Reports)
                                 FeaturePermission.SETTINGS -> navigator.navigateTo(Screen.Settings)
                                 FeaturePermission.USER_MANAGEMENT -> navigator.navigateTo(Screen.UserManagement)
-                                FeaturePermission.SHUTTLE_MANAGEMENT -> { /* TODO: Navigate to Shuttle Management */ }
+                                FeaturePermission.SHUTTLE_MANAGEMENT -> navigator.navigateTo(Screen.Shuttle)
                             }
                         }
                     )

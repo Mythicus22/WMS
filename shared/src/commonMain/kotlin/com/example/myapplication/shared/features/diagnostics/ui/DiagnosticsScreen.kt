@@ -1,6 +1,7 @@
 package com.example.myapplication.shared.features.diagnostics.ui
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -10,8 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.myapplication.shared.core.navigation.Navigator
-import com.example.myapplication.shared.core.navigation.Screen
-import com.example.myapplication.shared.presentation.components.PrimaryButton
+import com.example.myapplication.shared.presentation.components.AppToolbar
 import com.example.myapplication.shared.presentation.theme.AppDimensions
 
 @Composable
@@ -19,24 +19,32 @@ fun DiagnosticsScreen(navigator: Navigator) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(AppDimensions.spacing16),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        Text(
-            text = "Diagnostics",
-            style = MaterialTheme.typography.displaySmall,
-            modifier = Modifier.padding(bottom = AppDimensions.spacing32)
+        AppToolbar(
+            title = "Diagnostics Module",
+            onNavigationClick = { navigator.goBack() }
         )
-        Text(
-            text = "System diagnostics screen",
-            style = MaterialTheme.typography.bodyMedium
-        )
-        PrimaryButton(
-            text = "Back to Dashboard",
-            onClick = { navigator.navigateTo(Screen.Dashboard) },
-            modifier = Modifier.padding(top = AppDimensions.spacing24)
-        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(AppDimensions.spacing16),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "System Diagnostics",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = "Sensor telemetry, PLC I/O diagnostic test bench, and CANbus packet inspection (Phase 5/6 scope).",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(top = AppDimensions.spacing8)
+                )
+            }
+        }
     }
 }
-
