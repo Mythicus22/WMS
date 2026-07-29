@@ -39,7 +39,6 @@ val coreModule = module {
     // ViewModels
     factory { AuthViewModel(get()) }
     factory { DashboardViewModel(get(), get(), get()) }
-    factory { SettingsViewModel(get()) }
     factory { UserManagementViewModel(get()) }
 }
 

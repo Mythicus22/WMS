@@ -80,6 +80,11 @@ enum class SettingPermission(
         key = "REPORT_CONFIGURATION",
         displayName = "Report Configuration",
         description = "Configure report generation preferences"
+    ),
+    BACKUP_SETTINGS(
+        key = "BACKUP_SETTINGS",
+        displayName = "Backup & Restore Settings",
+        description = "Configure database backup and restore operations"
     );
 
     companion object {
