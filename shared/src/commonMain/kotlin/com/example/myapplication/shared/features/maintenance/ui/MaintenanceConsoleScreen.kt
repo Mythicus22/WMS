@@ -18,36 +18,47 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.BatteryFull
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.ElectricalServices
+import androidx.compose.material.icons.filled.PrecisionManufacturing
+import androidx.compose.material.icons.filled.Sensors
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.shared.core.navigation.Navigator
 import com.example.myapplication.shared.core.navigation.Screen
-import com.example.myapplication.shared.features.maintenance.viewmodel.MaintenanceViewModel
-import com.example.myapplication.shared.features.shuttle.model.Shuttle
+import com.example.myapplication.shared.features.maintenance.model.TestCategory
+import com.example.myapplication.shared.features.maintenance.model.TestDefinition
+import com.example.myapplication.shared.features.maintenance.viewmodel.MaintenanceConsoleViewModel
 import com.example.myapplication.shared.presentation.components.AppToolbar
-import com.example.myapplication.shared.presentation.components.ChipStatus
-import com.example.myapplication.shared.presentation.components.StatusChip
 import com.example.myapplication.shared.presentation.theme.AppDimensions
 
 @Composable
-fun MaintenanceScreen(
+fun MaintenanceConsoleScreen(
     navigator: Navigator,
-    viewModel: MaintenanceViewModel
+    viewModel: MaintenanceConsoleViewModel,
+    shuttleId: String
 ) {
+    LaunchedEffect(shuttleId) {
+        viewModel.initialize(shuttleId)
+    }
+
     val state by viewModel.uiState.collectAsState()
+    val shuttleTitle = state.shuttle?.name ?: "Shuttle $shuttleId"
 
     Column(
         modifier = Modifier
@@ -55,7 +66,7 @@ fun MaintenanceScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         AppToolbar(
-            title = "Maintenance Module",
+            title = "Maintenance Console: $shuttleTitle",
             onNavigationClick = { navigator.goBack() }
         )
 
@@ -65,7 +76,7 @@ fun MaintenanceScreen(
                 .padding(AppDimensions.spacing16)
         ) {
             Text(
-                text = "SELECT SHUTTLE FOR MAINTENANCE",
+                text = "HARDWARE & SENSOR DIAGNOSTIC TEST SUITE (14 TESTS)",
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
@@ -73,37 +84,17 @@ fun MaintenanceScreen(
 
             Spacer(modifier = Modifier.height(AppDimensions.spacing12))
 
-            if (state.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            } else if (state.enabledShuttles.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(AppDimensions.spacing32),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = state.errorMessage ?: "No enabled shuttles found in database.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(AppDimensions.spacing12),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(state.tests) { test ->
+                    MaintenanceTestCard(
+                        test = test,
+                        onClick = {
+                            navigator.navigateTo(Screen.MaintenanceTestDetail(shuttleId, test.id))
+                        }
                     )
-                }
-            } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(AppDimensions.spacing12),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(state.enabledShuttles) { shuttle ->
-                        MaintenanceShuttleCard(
-                            shuttle = shuttle,
-                            onClick = { navigator.navigateTo(Screen.MaintenanceConsole(shuttle.id)) }
-                        )
-                    }
                 }
             }
         }
@@ -111,10 +102,19 @@ fun MaintenanceScreen(
 }
 
 @Composable
-private fun MaintenanceShuttleCard(
-    shuttle: Shuttle,
+private fun MaintenanceTestCard(
+    test: TestDefinition,
     onClick: () -> Unit
 ) {
+    val categoryIcon: ImageVector = when (test.category) {
+        TestCategory.SENSORS -> Icons.Default.Sensors
+        TestCategory.MOTORS -> Icons.Default.PrecisionManufacturing
+        TestCategory.ELECTRICAL_RELAYS -> Icons.Default.ElectricalServices
+        TestCategory.COMMUNICATION -> Icons.Default.Wifi
+        TestCategory.BATTERY_POWER -> Icons.Default.BatteryFull
+        TestCategory.SAFETY_ESTOP -> Icons.Default.Shield
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -148,7 +148,7 @@ private fun MaintenanceShuttleCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Build,
+                        imageVector = categoryIcon,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(24.dp)
@@ -158,34 +158,28 @@ private fun MaintenanceShuttleCard(
                 Spacer(modifier = Modifier.width(AppDimensions.spacing16))
 
                 Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = shuttle.name,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.width(AppDimensions.spacing8))
-                        StatusChip(
-                            text = if (shuttle.isEnabled) "ONLINE" else "OFFLINE",
-                            status = if (shuttle.isEnabled) ChipStatus.SUCCESS else ChipStatus.INFO
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
                     Text(
-                        text = "ID: ${shuttle.id}  •  Battery: 88%  •  Faults: 1 Active",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        text = test.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Spacer(modifier = Modifier.height(2.dp))
 
                     Text(
-                        text = "Last Serviced: 2026-07-20 (Scheduled Periodic)",
+                        text = test.category.displayName,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = test.objective,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        maxLines = 2
                     )
                 }
             }

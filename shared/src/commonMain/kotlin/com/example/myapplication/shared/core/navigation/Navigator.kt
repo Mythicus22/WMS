@@ -25,6 +25,8 @@ sealed class Screen(val route: String) {
     data class OperatorConsole(val shuttleId: String) : Screen("operatorConsole")
     object Diagnostics : Screen("diagnostics")
     object Maintenance : Screen("maintenance")
+    data class MaintenanceConsole(val shuttleId: String) : Screen("maintenanceConsole")
+    data class MaintenanceTestDetail(val shuttleId: String, val testId: String) : Screen("maintenanceTestDetail")
     object Reports : Screen("reports")
     object Settings : Screen("settings")
     object UserManagement : Screen("usermanagement")

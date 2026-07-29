@@ -14,7 +14,12 @@ import com.example.myapplication.shared.features.auth.viewmodel.AuthViewModel
 import com.example.myapplication.shared.features.dashboard.ui.DashboardScreen
 import com.example.myapplication.shared.features.dashboard.viewmodel.DashboardViewModel
 import com.example.myapplication.shared.features.diagnostics.ui.DiagnosticsScreen
+import com.example.myapplication.shared.features.maintenance.ui.MaintenanceConsoleScreen
 import com.example.myapplication.shared.features.maintenance.ui.MaintenanceScreen
+import com.example.myapplication.shared.features.maintenance.ui.MaintenanceTestDetailScreen
+import com.example.myapplication.shared.features.maintenance.viewmodel.MaintenanceConsoleViewModel
+import com.example.myapplication.shared.features.maintenance.viewmodel.MaintenanceTestDetailViewModel
+import com.example.myapplication.shared.features.maintenance.viewmodel.MaintenanceViewModel
 import com.example.myapplication.shared.features.operator.ui.OperatorConsoleScreen
 import com.example.myapplication.shared.features.operator.ui.OperatorScreen
 import com.example.myapplication.shared.features.operator.viewmodel.OperatorConsoleViewModel
@@ -41,59 +46,80 @@ fun AppNavHost(navigator: Navigator) {
         LaunchedEffect(Unit) {
             navigator.navigateTo(Screen.Login)
         }
-        val authViewModel: AuthViewModel = remember { getKoin().get() }
-        LoginScreen(navigator = navigator, viewModel = authViewModel)
-    } else {
-        when (screenState) {
-            is Screen.Splash -> SplashScreen(navigator)
-            is Screen.Login -> {
-                if (currentUser != null) {
-                    LaunchedEffect(Unit) {
-                        navigator.navigateTo(Screen.Dashboard)
-                    }
-                }
-                val authViewModel: AuthViewModel = remember { getKoin().get() }
-                LoginScreen(navigator = navigator, viewModel = authViewModel)
-            }
-            is Screen.Dashboard -> {
-                val dashboardViewModel: DashboardViewModel = remember { getKoin().get() }
-                DashboardScreen(navigator = navigator, viewModel = dashboardViewModel)
-            }
-            is Screen.Shuttle -> {
-                val shuttleViewModel: com.example.myapplication.shared.features.shuttle.viewmodel.ShuttleViewModel = remember { getKoin().get() }
-                ShuttleScreen(navigator = navigator, viewModel = shuttleViewModel)
-            }
-            is Screen.AddEditShuttle -> {
-                val addEditShuttleViewModel: com.example.myapplication.shared.features.shuttle.viewmodel.AddEditShuttleViewModel = remember { getKoin().get() }
-                com.example.myapplication.shared.features.shuttle.ui.AddEditShuttleScreen(
-                    navigator = navigator,
-                    viewModel = addEditShuttleViewModel,
-                    shuttleId = (screenState as Screen.AddEditShuttle).id
-                )
-            }
+        return
+    }
 
-            is Screen.Operator -> {
-                val operatorViewModel: OperatorViewModel = remember { getKoin().get() }
-                OperatorScreen(navigator = navigator, viewModel = operatorViewModel)
-            }
-            is Screen.OperatorConsole -> {
-                val operatorConsoleViewModel: OperatorConsoleViewModel = remember { getKoin().get() }
-                OperatorConsoleScreen(
-                    navigator = navigator,
-                    viewModel = operatorConsoleViewModel,
-                    shuttleId = (screenState as Screen.OperatorConsole).shuttleId
-                )
-            }
-            is Screen.Diagnostics -> DiagnosticsScreen(navigator)
-            is Screen.Maintenance -> MaintenanceScreen(navigator)
-            is Screen.Reports -> ReportsScreen(navigator)
-            is Screen.Settings -> {
-                val settingsViewModel: SettingsViewModel = remember { getKoin().get() }
-                SettingsScreen(navigator = navigator, viewModel = settingsViewModel)
-            }
-            is Screen.UserManagement -> {
-                val userManagementViewModel: UserManagementViewModel = remember { getKoin().get() }
-                UserManagementScreen(navigator = navigator, viewModel = userManagementViewModel)
+    when (screenState) {
+        is Screen.Splash -> SplashScreen(navigator = navigator)
+        is Screen.Login -> {
+            val authViewModel: AuthViewModel = remember { getKoin().get() }
+            LoginScreen(navigator = navigator, viewModel = authViewModel)
+        }
+
+        else -> {
+            when (screenState) {
+                is Screen.Dashboard -> {
+                    val dashboardViewModel: DashboardViewModel = remember { getKoin().get() }
+                    DashboardScreen(navigator = navigator, viewModel = dashboardViewModel)
+                }
+                is Screen.Shuttle -> {
+                    val shuttleViewModel: com.example.myapplication.shared.features.shuttle.viewmodel.ShuttleViewModel = remember { getKoin().get() }
+                    ShuttleScreen(navigator = navigator, viewModel = shuttleViewModel)
+                }
+                is Screen.AddEditShuttle -> {
+                    val addEditShuttleViewModel: com.example.myapplication.shared.features.shuttle.viewmodel.AddEditShuttleViewModel = remember { getKoin().get() }
+                    com.example.myapplication.shared.features.shuttle.ui.AddEditShuttleScreen(
+                        navigator = navigator,
+                        viewModel = addEditShuttleViewModel,
+                        shuttleId = (screenState as Screen.AddEditShuttle).id
+                    )
+                }
+
+                is Screen.Operator -> {
+                    val operatorViewModel: OperatorViewModel = remember { getKoin().get() }
+                    OperatorScreen(navigator = navigator, viewModel = operatorViewModel)
+                }
+                is Screen.OperatorConsole -> {
+                    val operatorConsoleViewModel: OperatorConsoleViewModel = remember { getKoin().get() }
+                    OperatorConsoleScreen(
+                        navigator = navigator,
+                        viewModel = operatorConsoleViewModel,
+                        shuttleId = (screenState as Screen.OperatorConsole).shuttleId
+                    )
+                }
+                is Screen.Diagnostics -> DiagnosticsScreen(navigator)
+                is Screen.Maintenance -> {
+                    val maintenanceViewModel: MaintenanceViewModel = remember { getKoin().get() }
+                    MaintenanceScreen(navigator = navigator, viewModel = maintenanceViewModel)
+                }
+                is Screen.MaintenanceConsole -> {
+                    val maintenanceConsoleViewModel: MaintenanceConsoleViewModel = remember { getKoin().get() }
+                    MaintenanceConsoleScreen(
+                        navigator = navigator,
+                        viewModel = maintenanceConsoleViewModel,
+                        shuttleId = (screenState as Screen.MaintenanceConsole).shuttleId
+                    )
+                }
+                is Screen.MaintenanceTestDetail -> {
+                    val maintenanceTestDetailViewModel: MaintenanceTestDetailViewModel = remember { getKoin().get() }
+                    val currentScreen = screenState as Screen.MaintenanceTestDetail
+                    MaintenanceTestDetailScreen(
+                        navigator = navigator,
+                        viewModel = maintenanceTestDetailViewModel,
+                        shuttleId = currentScreen.shuttleId,
+                        testId = currentScreen.testId
+                    )
+                }
+                is Screen.Reports -> ReportsScreen(navigator)
+                is Screen.Settings -> {
+                    val settingsViewModel: SettingsViewModel = remember { getKoin().get() }
+                    SettingsScreen(navigator = navigator, viewModel = settingsViewModel)
+                }
+                is Screen.UserManagement -> {
+                    val userManagementViewModel: UserManagementViewModel = remember { getKoin().get() }
+                    UserManagementScreen(navigator = navigator, viewModel = userManagementViewModel)
+                }
+                else -> {}
             }
         }
     }
