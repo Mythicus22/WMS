@@ -118,37 +118,35 @@ fun OperatorConsoleScreen(
                 Spacer(modifier = Modifier.height(AppDimensions.spacing12))
             }
 
-            // Section 1: Live Status Telemetry Panel
-            LiveStatusPanel(status = state.liveStatus)
+            // Row 1: Status & Faults
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(AppDimensions.spacing16)) {
+                LiveStatusPanel(status = state.liveStatus, modifier = Modifier.weight(1f))
+                LiveFaultPanel(faults = state.activeFaults, modifier = Modifier.weight(1f))
+            }
 
             Spacer(modifier = Modifier.height(AppDimensions.spacing16))
 
-            // Section 2: Automatic Controls
-            AutomaticControlsPanel(
-                onExecute = { cmd -> viewModel.onEvent(OperatorConsoleEvent.ExecuteCommand(cmd)) },
-                isEnabled = !state.isCommandExecuting
-            )
-
-            Spacer(modifier = Modifier.height(AppDimensions.spacing16))
-
-            // Section 3: Manual Controls
-            ManualControlsPanel(
-                onExecute = { cmd -> viewModel.onEvent(OperatorConsoleEvent.ExecuteCommand(cmd)) },
-                isEnabled = !state.isCommandExecuting
-            )
-
-            Spacer(modifier = Modifier.height(AppDimensions.spacing16))
-
-            // Section 4: Live Fault Panel
-            LiveFaultPanel(faults = state.activeFaults)
+            // Row 2: Automatic & Manual Controls
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(AppDimensions.spacing16)) {
+                AutomaticControlsPanel(
+                    onExecute = { cmd -> viewModel.onEvent(OperatorConsoleEvent.ExecuteCommand(cmd)) },
+                    isEnabled = !state.isCommandExecuting,
+                    modifier = Modifier.weight(1f)
+                )
+                ManualControlsPanel(
+                    onExecute = { cmd -> viewModel.onEvent(OperatorConsoleEvent.ExecuteCommand(cmd)) },
+                    isEnabled = !state.isCommandExecuting,
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun LiveStatusPanel(status: ShuttleLiveStatus) {
+private fun LiveStatusPanel(status: ShuttleLiveStatus, modifier: Modifier = Modifier) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .border(width = 1.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f), shape = RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
@@ -176,35 +174,40 @@ private fun LiveStatusPanel(status: ShuttleLiveStatus) {
             Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
             Spacer(modifier = Modifier.height(AppDimensions.spacing12))
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                TelemetryItem(label = "CURRENT MISSION", value = status.currentMission, modifier = Modifier.weight(1f))
-                TelemetryItem(label = "CURRENT STATE", value = status.currentState, modifier = Modifier.weight(1f))
-            }
+            // 2-Column Equal Grid for Telemetry (5 rows)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TelemetryItem(label = "CURRENT MISSION", value = status.currentMission, modifier = Modifier.weight(1f))
+                    TelemetryItem(label = "CURRENT STATE", value = status.currentState, modifier = Modifier.weight(1f))
+                }
 
-            Spacer(modifier = Modifier.height(AppDimensions.spacing12))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TelemetryItem(label = "SPEED", value = status.speed, modifier = Modifier.weight(1f))
+                    TelemetryItem(label = "DIRECTION", value = status.direction, modifier = Modifier.weight(1f))
+                }
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                TelemetryItem(label = "SPEED", value = status.speed, modifier = Modifier.weight(1f))
-                TelemetryItem(label = "DIRECTION", value = status.direction, modifier = Modifier.weight(1f))
-                TelemetryItem(label = "BATTERY", value = "${status.batteryPercent}%", modifier = Modifier.weight(1f))
-            }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TelemetryItem(label = "RACK POSITION", value = status.rackPosition, modifier = Modifier.weight(1f))
+                    TelemetryItem(label = "LIFT POSITION", value = status.liftPosition, modifier = Modifier.weight(1f))
+                }
 
-            Spacer(modifier = Modifier.height(AppDimensions.spacing12))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TelemetryItem(label = "BATTERY", value = "${status.batteryPercent}%", modifier = Modifier.weight(1f))
+                    TelemetryItem(
+                        label = "EMERGENCY STOP",
+                        value = if (status.isEmergencyStopActive) "TRIGGERED" else "NORMAL",
+                        modifier = Modifier.weight(1f)
+                    )
+                }
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                TelemetryItem(label = "RACK POSITION", value = status.rackPosition, modifier = Modifier.weight(1.5f))
-                TelemetryItem(label = "LIFT POSITION", value = status.liftPosition, modifier = Modifier.weight(1f))
-            }
-
-            Spacer(modifier = Modifier.height(AppDimensions.spacing12))
-
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                TelemetryItem(label = "COMMUNICATION", value = status.commStatus, modifier = Modifier.weight(1.5f))
-                TelemetryItem(
-                    label = "EMERGENCY STOP",
-                    value = if (status.isEmergencyStopActive) "TRIGGERED" else "NORMAL",
-                    modifier = Modifier.weight(1f)
-                )
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TelemetryItem(label = "COMMUNICATION", value = status.commStatus, modifier = Modifier.weight(1f))
+                    TelemetryItem(
+                        label = "SYSTEM STATUS",
+                        value = if (status.isOnline) "READY / ACTIVE" else "DISCONNECTED",
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
         }
     }
@@ -212,17 +215,36 @@ private fun LiveStatusPanel(status: ShuttleLiveStatus) {
 
 @Composable
 private fun TelemetryItem(label: String, value: String, modifier: Modifier = Modifier) {
-    Column(modifier = modifier) {
-        Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-        Spacer(modifier = Modifier.height(2.dp))
-        Text(text = value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+    Box(
+        modifier = modifier
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        Column {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
     }
 }
 
 @Composable
-private fun AutomaticControlsPanel(onExecute: (ShuttleCommandType) -> Unit, isEnabled: Boolean) {
+private fun AutomaticControlsPanel(onExecute: (ShuttleCommandType) -> Unit, isEnabled: Boolean, modifier: Modifier = Modifier) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .border(width = 1.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f), shape = RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
@@ -309,9 +331,9 @@ private fun AutoControlButton(
 }
 
 @Composable
-private fun ManualControlsPanel(onExecute: (ShuttleCommandType) -> Unit, isEnabled: Boolean) {
+private fun ManualControlsPanel(onExecute: (ShuttleCommandType) -> Unit, isEnabled: Boolean, modifier: Modifier = Modifier) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .border(width = 1.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f), shape = RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
@@ -405,9 +427,9 @@ private fun ManualControlsPanel(onExecute: (ShuttleCommandType) -> Unit, isEnabl
 }
 
 @Composable
-private fun LiveFaultPanel(faults: List<ShuttleFault>) {
+private fun LiveFaultPanel(faults: List<ShuttleFault>, modifier: Modifier = Modifier) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .border(width = 1.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f), shape = RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),

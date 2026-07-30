@@ -83,7 +83,15 @@ object SettingsValidator {
 
     fun validateCommunication(comm: CommunicationSettings): ValidationResult {
         val errors = mutableMapOf<String, String>()
-        if (comm.mqttBrokerAddress.isBlank()) errors["mqttBrokerAddress"] = "Broker address is required."
+        
+        val ipRegex = "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$".toRegex()
+        val hostRegex = "^[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}\$".toRegex()
+        if (comm.mqttBrokerAddress.isBlank()) {
+            errors["mqttBrokerAddress"] = "Broker address is required."
+        } else if (!comm.mqttBrokerAddress.matches(ipRegex) && !comm.mqttBrokerAddress.matches(hostRegex) && comm.mqttBrokerAddress != "localhost") {
+            errors["mqttBrokerAddress"] = "Must be a valid IP address or hostname."
+        }
+
         if (comm.mqttPort !in 1..65535) errors["mqttPort"] = "Port must be between 1 and 65535."
         if (comm.clientId.isBlank()) errors["clientId"] = "Client ID is required."
         if (comm.clientId.contains(" ")) errors["clientId"] = "Client ID must not contain spaces."

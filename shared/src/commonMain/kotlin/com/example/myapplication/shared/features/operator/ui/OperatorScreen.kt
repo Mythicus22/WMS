@@ -103,11 +103,23 @@ fun OperatorScreen(
                     verticalArrangement = Arrangement.spacedBy(AppDimensions.spacing12),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(state.enabledShuttles) { shuttle ->
-                        OperatorShuttleCard(
-                            shuttle = shuttle,
-                            onClick = { navigator.navigateTo(Screen.OperatorConsole(shuttle.id)) }
-                        )
+                    val rows = state.enabledShuttles.chunked(2)
+                    items(rows) { rowShuttles ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(AppDimensions.spacing12)
+                        ) {
+                            for (shuttle in rowShuttles) {
+                                OperatorShuttleCard(
+                                    shuttle = shuttle,
+                                    onClick = { navigator.navigateTo(Screen.OperatorConsole(shuttle.id)) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            if (rowShuttles.size == 1) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
                     }
                 }
             }
@@ -118,11 +130,11 @@ fun OperatorScreen(
 @Composable
 private fun OperatorShuttleCard(
     shuttle: Shuttle,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .clickable { onClick() }
             .border(
                 width = 1.dp,
@@ -143,7 +155,7 @@ private fun OperatorShuttleCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
-                            .size(44.dp)
+                            .size(38.dp)
                             .background(
                                 MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                                 shape = RoundedCornerShape(10.dp)
@@ -153,11 +165,12 @@ private fun OperatorShuttleCard(
                         Icon(
                             imageVector = Icons.Default.PrecisionManufacturing,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(AppDimensions.spacing12))
+                    Spacer(modifier = Modifier.width(AppDimensions.spacing8))
 
                     Column {
                         Text(
@@ -167,7 +180,7 @@ private fun OperatorShuttleCard(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "ID: ${shuttle.id} • IP: ${shuttle.plcIpAddress}",
+                            text = "ID: ${shuttle.id} • ${shuttle.plcIpAddress}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
@@ -176,32 +189,32 @@ private fun OperatorShuttleCard(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     StatusChip(text = "ONLINE", status = ChipStatus.SUCCESS)
-                    Spacer(modifier = Modifier.width(AppDimensions.spacing8))
+                    Spacer(modifier = Modifier.width(AppDimensions.spacing4))
                     Icon(
                         imageVector = Icons.Default.ChevronRight,
                         contentDescription = "Open Console",
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(AppDimensions.spacing12))
 
-            // Placeholder Telemetry Bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
                         shape = RoundedCornerShape(8.dp)
                     )
-                    .padding(AppDimensions.spacing12),
+                    .padding(AppDimensions.spacing8),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text(text = "CURRENT TASK", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
-                    Text(text = "Standby / Ready", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
+                    Text(text = "TASK", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+                    Text(text = "Standby", style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold)
                 }
 
                 Column {
@@ -210,21 +223,15 @@ private fun OperatorShuttleCard(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Default.BatteryFull, contentDescription = null, tint = AppColors.Success, modifier = Modifier.size(16.dp))
+                    Icon(imageVector = Icons.Default.BatteryFull, contentDescription = null, tint = AppColors.Success, modifier = Modifier.size(14.dp))
                     Spacer(modifier = Modifier.width(2.dp))
-                    Text(text = "88%", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    Text(text = "88%", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Default.Speed, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                    Icon(imageVector = Icons.Default.Speed, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
                     Spacer(modifier = Modifier.width(2.dp))
-                    Text(text = "0.0 m/s", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Default.Warning, contentDescription = null, tint = AppColors.Warning, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(2.dp))
-                    Text(text = "1 Warning", style = MaterialTheme.typography.labelSmall, color = AppColors.Warning, fontWeight = FontWeight.Bold)
+                    Text(text = "0.0m/s", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                 }
             }
         }

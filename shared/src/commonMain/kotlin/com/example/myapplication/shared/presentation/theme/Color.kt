@@ -44,16 +44,16 @@ val LightColorScheme = lightColorScheme(
 )
 
 val DarkColorScheme = darkColorScheme(
-    primary = AppColors.Primary,
-    primaryContainer = AppColors.PrimaryVariant,
-    secondary = AppColors.Secondary,
-    secondaryContainer = AppColors.SecondaryVariant,
-    tertiary = AppColors.Tertiary,
+    primary = Color(0xFF8AB4F8), // Softer premium blue for dark theme
+    primaryContainer = Color(0xFF3F51B5),
+    secondary = Color(0xFF81D4FA),
+    secondaryContainer = Color(0xFF006064),
+    tertiary = Color(0xFF80CBC4),
     background = Color(0xFF121212),
     surface = Color(0xFF1E1E1E),
-    error = AppColors.Error,
+    error = Color(0xFFCF6679), // Softer red for dark mode
     onBackground = Color(0xFFE0E0E0),
     onSurface = Color(0xFFE0E0E0),
-    onError = AppColors.OnError
+    onError = Color(0xFF000000)
 )
 

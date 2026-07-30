@@ -24,7 +24,10 @@ import com.example.myapplication.shared.features.operator.ui.OperatorConsoleScre
 import com.example.myapplication.shared.features.operator.ui.OperatorScreen
 import com.example.myapplication.shared.features.operator.viewmodel.OperatorConsoleViewModel
 import com.example.myapplication.shared.features.operator.viewmodel.OperatorViewModel
+import com.example.myapplication.shared.features.reports.ui.ReportsMainScreen
 import com.example.myapplication.shared.features.reports.ui.ReportsScreen
+import com.example.myapplication.shared.features.reports.viewmodel.ReportsViewModel
+import com.example.myapplication.shared.features.shuttle.repository.ShuttleRepository
 import com.example.myapplication.shared.features.settings.ui.SettingsScreen
 import com.example.myapplication.shared.features.settings.viewmodel.SettingsViewModel
 import com.example.myapplication.shared.features.shuttle.ui.ShuttleScreen
@@ -110,7 +113,19 @@ fun AppNavHost(navigator: Navigator) {
                         testId = currentScreen.testId
                     )
                 }
-                is Screen.Reports -> ReportsScreen(navigator)
+                is Screen.ReportsShuttleSelect -> ReportsScreen(navigator)
+                is Screen.Reports -> {
+                    val currentScreen = screenState as Screen.Reports
+                    val sid = currentScreen.shuttleId.takeIf { it != "ALL" }
+                    val shuttleRepo: ShuttleRepository = remember { getKoin().get() }
+                    val shuttles by shuttleRepo.getAllShuttles().collectAsState(initial = emptyList())
+                    val shuttleName = if (currentScreen.shuttleId == "ALL") "All Shuttles"
+                        else shuttles.find { it.id == currentScreen.shuttleId }?.name ?: currentScreen.shuttleId
+                    val reportsViewModel: ReportsViewModel = remember(currentScreen.shuttleId) {
+                        getKoin().get { org.koin.core.parameter.parametersOf(sid, shuttleName) }
+                    }
+                    ReportsMainScreen(navigator = navigator, viewModel = reportsViewModel, shuttleName = shuttleName)
+                }
                 is Screen.Settings -> {
                     val settingsViewModel: SettingsViewModel = remember { getKoin().get() }
                     SettingsScreen(navigator = navigator, viewModel = settingsViewModel)

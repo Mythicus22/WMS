@@ -21,6 +21,7 @@ room = "2.6.1"
 datastore = "1.1.1"
 material3 = "1.11.0-alpha07"
 sqldelight = "2.0.1"
+kotlinx-datetime = "0.6.0"
 
 [libraries]
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastore" }
@@ -53,6 +54,7 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 sqldelight-coroutines-extensions = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
 sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
 sqldelight-sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

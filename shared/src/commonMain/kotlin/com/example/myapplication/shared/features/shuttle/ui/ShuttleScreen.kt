@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -133,15 +134,27 @@ fun ShuttleScreen(
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(AppDimensions.spacing16),
-                    verticalArrangement = Arrangement.spacedBy(AppDimensions.spacing8)
+                    verticalArrangement = Arrangement.spacedBy(AppDimensions.spacing12)
                 ) {
-                    items(currentState.filteredShuttles, key = { it.id }) { shuttle ->
-                        ShuttleItemCard(
-                            shuttle = shuttle,
-                            onEdit = { navigator.navigateTo(Screen.AddEditShuttle(shuttle.id)) },
-                            onDelete = { viewModel.onEvent(ShuttleUiEvent.OnDeleteShuttle(shuttle.id)) },
-                            onToggleStatus = { viewModel.onEvent(ShuttleUiEvent.OnToggleShuttleStatus(shuttle.id, !shuttle.isEnabled)) }
-                        )
+                    val rows = currentState.filteredShuttles.chunked(2)
+                    items(rows) { rowShuttles ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(AppDimensions.spacing12)
+                        ) {
+                            for (shuttle in rowShuttles) {
+                                ShuttleItemCard(
+                                    shuttle = shuttle,
+                                    onEdit = { navigator.navigateTo(Screen.AddEditShuttle(shuttle.id)) },
+                                    onDelete = { viewModel.onEvent(ShuttleUiEvent.OnDeleteShuttle(shuttle.id)) },
+                                    onToggleStatus = { viewModel.onEvent(ShuttleUiEvent.OnToggleShuttleStatus(shuttle.id, !shuttle.isEnabled)) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            if (rowShuttles.size == 1) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
                     }
                 }
             }
@@ -154,12 +167,14 @@ fun ShuttleItemCard(
     shuttle: Shuttle,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    onToggleStatus: () -> Unit
+    onToggleStatus: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = RoundedCornerShape(12.dp)
     ) {
         Column(modifier = Modifier.padding(AppDimensions.spacing16)) {
             Row(
@@ -179,10 +194,10 @@ fun ShuttleItemCard(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 }
-                
+
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = if (shuttle.isEnabled) "ENABLED" else "DISABLED",
+                        text = if (shuttle.isEnabled) "ACTIVE" else "DISABLED",
                         style = MaterialTheme.typography.labelSmall,
                         color = if (shuttle.isEnabled) AppColors.Success else MaterialTheme.colorScheme.error,
                         modifier = Modifier
@@ -190,39 +205,41 @@ fun ShuttleItemCard(
                                 color = (if (shuttle.isEnabled) AppColors.Success else MaterialTheme.colorScheme.error).copy(alpha = 0.1f),
                                 shape = MaterialTheme.shapes.small
                             )
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
                     Switch(
                         checked = shuttle.isEnabled,
                         onCheckedChange = { onToggleStatus() }
                     )
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(AppDimensions.spacing8))
-            
+
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(
                     text = "IP: ${shuttle.plcIpAddress}",
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
                 Text(
                     text = "FW: ${shuttle.firmwareVersion}",
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
             }
-            
+
             Spacer(modifier = Modifier.height(AppDimensions.spacing8))
             Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
-            Spacer(modifier = Modifier.height(AppDimensions.spacing8))
-            
+            Spacer(modifier = Modifier.height(AppDimensions.spacing4))
+
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                IconButton(onClick = onEdit) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit Shuttle", tint = MaterialTheme.colorScheme.primary)
+                IconButton(onClick = onEdit, modifier = Modifier.size(36.dp)) {
+                    Icon(Icons.Default.Edit, contentDescription = "Edit Shuttle", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                 }
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete Shuttle", tint = MaterialTheme.colorScheme.error)
+                IconButton(onClick = onDelete, modifier = Modifier.size(36.dp)) {
+                    Icon(Icons.Default.Delete, contentDescription = "Delete Shuttle", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))
                 }
             }
         }

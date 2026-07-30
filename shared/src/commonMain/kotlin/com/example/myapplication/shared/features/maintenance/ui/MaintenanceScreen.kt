@@ -98,11 +98,23 @@ fun MaintenanceScreen(
                     verticalArrangement = Arrangement.spacedBy(AppDimensions.spacing12),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(state.enabledShuttles) { shuttle ->
-                        MaintenanceShuttleCard(
-                            shuttle = shuttle,
-                            onClick = { navigator.navigateTo(Screen.MaintenanceConsole(shuttle.id)) }
-                        )
+                    val rows = state.enabledShuttles.chunked(2)
+                    items(rows) { rowShuttles ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(AppDimensions.spacing12)
+                        ) {
+                            for (shuttle in rowShuttles) {
+                                MaintenanceShuttleCard(
+                                    shuttle = shuttle,
+                                    onClick = { navigator.navigateTo(Screen.MaintenanceConsole(shuttle.id)) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            if (rowShuttles.size == 1) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
                     }
                 }
             }
@@ -113,11 +125,11 @@ fun MaintenanceScreen(
 @Composable
 private fun MaintenanceShuttleCard(
     shuttle: Shuttle,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .border(
                 width = 1.dp,
                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
@@ -127,73 +139,97 @@ private fun MaintenanceShuttleCard(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(AppDimensions.spacing16),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(AppDimensions.spacing16)
         ) {
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .background(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                            shape = RoundedCornerShape(10.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Build,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .background(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(10.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Build,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
 
-                Spacer(modifier = Modifier.width(AppDimensions.spacing16))
+                    Spacer(modifier = Modifier.width(AppDimensions.spacing8))
 
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column {
                         Text(
                             text = shuttle.name,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        Spacer(modifier = Modifier.width(AppDimensions.spacing8))
-                        StatusChip(
-                            text = if (shuttle.isEnabled) "ONLINE" else "OFFLINE",
-                            status = if (shuttle.isEnabled) ChipStatus.SUCCESS else ChipStatus.INFO
+                        Text(
+                            text = "ID: ${shuttle.id}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     }
+                }
 
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = "ID: ${shuttle.id}  •  Battery: 88%  •  Faults: 1 Active",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    StatusChip(
+                        text = if (shuttle.isEnabled) "ONLINE" else "OFFLINE",
+                        status = if (shuttle.isEnabled) ChipStatus.SUCCESS else ChipStatus.INFO
                     )
-
-                    Spacer(modifier = Modifier.height(2.dp))
-
-                    Text(
-                        text = "Last Serviced: 2026-07-20 (Scheduled Periodic)",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
+                    Spacer(modifier = Modifier.width(AppDimensions.spacing4))
+                    Icon(
+                        imageVector = Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
 
-            Icon(
-                imageVector = Icons.Default.ChevronRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+            Spacer(modifier = Modifier.height(AppDimensions.spacing12))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .padding(AppDimensions.spacing8),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Battery: 88%",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = "Faults: 1 Active",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = "Last Serviced: 2026-07-20",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }

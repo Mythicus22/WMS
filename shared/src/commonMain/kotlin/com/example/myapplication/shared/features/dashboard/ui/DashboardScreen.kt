@@ -229,21 +229,32 @@ fun DashboardScreen(
                     )
                 }
             } else {
-                currentState.availableFeatures.forEach { feature ->
-                    FeatureModuleCard(
-                        feature = feature,
-                        onClick = {
-                            when (feature) {
-                                FeaturePermission.OPERATOR -> navigator.navigateTo(Screen.Operator)
-                                FeaturePermission.DIAGNOSTICS -> navigator.navigateTo(Screen.Diagnostics)
-                                FeaturePermission.MAINTENANCE -> navigator.navigateTo(Screen.Maintenance)
-                                FeaturePermission.REPORTS -> navigator.navigateTo(Screen.Reports)
-                                FeaturePermission.SETTINGS -> navigator.navigateTo(Screen.Settings)
-                                FeaturePermission.USER_MANAGEMENT -> navigator.navigateTo(Screen.UserManagement)
-                                FeaturePermission.SHUTTLE_MANAGEMENT -> navigator.navigateTo(Screen.Shuttle)
-                            }
+                currentState.availableFeatures.chunked(2).forEach { rowFeatures ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.spacing12)
+                    ) {
+                        rowFeatures.forEach { feature ->
+                            FeatureModuleCard(
+                                feature = feature,
+                                onClick = {
+                                    when (feature) {
+                                        FeaturePermission.OPERATOR -> navigator.navigateTo(Screen.Operator)
+                                        FeaturePermission.DIAGNOSTICS -> navigator.navigateTo(Screen.Diagnostics)
+                                        FeaturePermission.MAINTENANCE -> navigator.navigateTo(Screen.Maintenance)
+                                        FeaturePermission.REPORTS -> navigator.navigateTo(Screen.ReportsShuttleSelect)
+                                        FeaturePermission.SETTINGS -> navigator.navigateTo(Screen.Settings)
+                                        FeaturePermission.USER_MANAGEMENT -> navigator.navigateTo(Screen.UserManagement)
+                                        FeaturePermission.SHUTTLE_MANAGEMENT -> navigator.navigateTo(Screen.Shuttle)
+                                    }
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
                         }
-                    )
+                        if (rowFeatures.size == 1) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
                     Spacer(modifier = Modifier.height(AppDimensions.spacing12))
                 }
             }
@@ -302,7 +313,8 @@ private fun MetricCard(
 @Composable
 private fun FeatureModuleCard(
     feature: FeaturePermission,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val icon = when (feature) {
         FeaturePermission.OPERATOR -> Icons.Default.OpenInFull
@@ -315,7 +327,7 @@ private fun FeatureModuleCard(
     }
 
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() }
             .border(
@@ -326,56 +338,43 @@ private fun FeatureModuleCard(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(AppDimensions.spacing16),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalAlignment = Alignment.Start
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(10.dp)
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .background(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                            shape = RoundedCornerShape(10.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = feature.displayName,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(AppDimensions.spacing16))
-
-                Column {
-                    Text(
-                        text = feature.displayName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.height(AppDimensions.spacing2))
-                    Text(
-                        text = feature.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                }
+                Icon(
+                    imageVector = icon,
+                    contentDescription = feature.displayName,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
             }
 
-            Icon(
-                imageVector = Icons.Default.ChevronRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+            Spacer(modifier = Modifier.height(AppDimensions.spacing12))
+
+            Text(
+                text = feature.displayName,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(AppDimensions.spacing4))
+            Text(
+                text = feature.description,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                maxLines = 2
             )
         }
     }

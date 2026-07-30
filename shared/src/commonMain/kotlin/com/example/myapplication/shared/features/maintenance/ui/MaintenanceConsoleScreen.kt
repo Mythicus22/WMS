@@ -88,13 +88,25 @@ fun MaintenanceConsoleScreen(
                 verticalArrangement = Arrangement.spacedBy(AppDimensions.spacing12),
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(state.tests) { test ->
-                    MaintenanceTestCard(
-                        test = test,
-                        onClick = {
-                            navigator.navigateTo(Screen.MaintenanceTestDetail(shuttleId, test.id))
+                val rows = state.tests.chunked(2)
+                items(rows) { rowTests ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(AppDimensions.spacing12)
+                    ) {
+                        for (test in rowTests) {
+                            MaintenanceTestCard(
+                                test = test,
+                                onClick = {
+                                    navigator.navigateTo(Screen.MaintenanceTestDetail(shuttleId, test.id))
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
                         }
-                    )
+                        if (rowTests.size == 1) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
                 }
             }
         }
@@ -104,7 +116,8 @@ fun MaintenanceConsoleScreen(
 @Composable
 private fun MaintenanceTestCard(
     test: TestDefinition,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val categoryIcon: ImageVector = when (test.category) {
         TestCategory.SENSORS -> Icons.Default.Sensors
@@ -116,8 +129,7 @@ private fun MaintenanceTestCard(
     }
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .border(
                 width = 1.dp,
                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
@@ -127,67 +139,67 @@ private fun MaintenanceTestCard(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(AppDimensions.spacing16),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(AppDimensions.spacing16)
         ) {
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .background(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                            shape = RoundedCornerShape(10.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = categoryIcon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .background(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(10.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = categoryIcon,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(AppDimensions.spacing8))
+
+                    Column {
+                        Text(
+                            text = test.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1
+                        )
+                        Text(
+                            text = test.category.displayName,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.width(AppDimensions.spacing16))
-
-                Column {
-                    Text(
-                        text = test.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
-                    Spacer(modifier = Modifier.height(2.dp))
-
-                    Text(
-                        text = test.category.displayName,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = test.objective,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                        maxLines = 2
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                    modifier = Modifier.size(18.dp)
+                )
             }
 
-            Icon(
-                imageVector = Icons.Default.ChevronRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+            Spacer(modifier = Modifier.height(AppDimensions.spacing8))
+
+            Text(
+                text = test.objective,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                maxLines = 2
             )
         }
     }
