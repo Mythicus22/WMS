@@ -14,6 +14,8 @@ import com.example.myapplication.shared.features.auth.viewmodel.AuthViewModel
 import com.example.myapplication.shared.features.dashboard.ui.DashboardScreen
 import com.example.myapplication.shared.features.dashboard.viewmodel.DashboardViewModel
 import com.example.myapplication.shared.features.diagnostics.ui.DiagnosticsScreen
+import com.example.myapplication.shared.features.diagnostics.ui.DiagnosticsDashboardScreen
+import com.example.myapplication.shared.features.diagnostics.viewmodel.DiagnosticsDashboardViewModel
 import com.example.myapplication.shared.features.maintenance.ui.MaintenanceConsoleScreen
 import com.example.myapplication.shared.features.maintenance.ui.MaintenanceScreen
 import com.example.myapplication.shared.features.maintenance.ui.MaintenanceTestDetailScreen
@@ -90,7 +92,23 @@ fun AppNavHost(navigator: Navigator) {
                         shuttleId = (screenState as Screen.OperatorConsole).shuttleId
                     )
                 }
-                is Screen.Diagnostics -> DiagnosticsScreen(navigator)
+                is Screen.DiagnosticsShuttleSelect -> DiagnosticsScreen(navigator)
+                is Screen.DiagnosticsDashboard -> {
+                    val currentScreen = screenState as Screen.DiagnosticsDashboard
+                    val shuttleRepo: ShuttleRepository = remember { getKoin().get() }
+                    val shuttles by shuttleRepo.getAllShuttles().collectAsState(initial = emptyList())
+                    val shuttleName = if (currentScreen.shuttleId == "ALL") "All Shuttles"
+                        else shuttles.find { it.id == currentScreen.shuttleId }?.name ?: currentScreen.shuttleId
+                    val diagnosticsDashboardViewModel: DiagnosticsDashboardViewModel = remember(currentScreen.shuttleId) {
+                        getKoin().get { org.koin.core.parameter.parametersOf(currentScreen.shuttleId, shuttleName) }
+                    }
+                    DiagnosticsDashboardScreen(
+                        navigator = navigator,
+                        viewModel = diagnosticsDashboardViewModel,
+                        shuttleId = currentScreen.shuttleId,
+                        shuttleName = shuttleName
+                    )
+                }
                 is Screen.Maintenance -> {
                     val maintenanceViewModel: MaintenanceViewModel = remember { getKoin().get() }
                     MaintenanceScreen(navigator = navigator, viewModel = maintenanceViewModel)

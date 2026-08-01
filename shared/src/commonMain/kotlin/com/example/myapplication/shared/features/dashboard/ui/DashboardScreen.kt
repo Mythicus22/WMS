@@ -240,7 +240,7 @@ fun DashboardScreen(
                                 onClick = {
                                     when (feature) {
                                         FeaturePermission.OPERATOR -> navigator.navigateTo(Screen.Operator)
-                                        FeaturePermission.DIAGNOSTICS -> navigator.navigateTo(Screen.Diagnostics)
+                                        FeaturePermission.DIAGNOSTICS -> navigator.navigateTo(Screen.DiagnosticsShuttleSelect)
                                         FeaturePermission.MAINTENANCE -> navigator.navigateTo(Screen.Maintenance)
                                         FeaturePermission.REPORTS -> navigator.navigateTo(Screen.ReportsShuttleSelect)
                                         FeaturePermission.SETTINGS -> navigator.navigateTo(Screen.Settings)

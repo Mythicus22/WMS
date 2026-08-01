@@ -1,6 +1,8 @@
 package com.example.myapplication.shared.features.diagnostics.repository
 
-// Placeholder repository file for Diagnostics feature. No implementation at Phase 0.
-interface DiagnosticsRepository {
-}
+import com.example.myapplication.shared.features.diagnostics.model.DiagnosticsData
+import kotlinx.coroutines.flow.Flow
 
+interface DiagnosticsRepository {
+    fun getDiagnostics(shuttleId: String): Flow<DiagnosticsData>
+}
