@@ -47,20 +47,8 @@ fun SettingsScreen(navigator: Navigator, viewModel: SettingsViewModel) {
                     state.selectedTab == SettingsTab.ABOUT -> Unit
                     state.selectedTab == SettingsTab.BACKUP -> Unit
                     isEditing -> {
-                        // Save button
-                        TextButton(onClick = {
-                            // Save signal is sent by child composables via callback
-                            isEditing = false
-                        }) {
-                            Icon(Icons.Default.Check, contentDescription = "Save", tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("Save", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
-                        }
-                        TextButton(onClick = { isEditing = false }) {
-                            Icon(Icons.Default.Close, contentDescription = "Cancel", tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f), modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("Cancel", color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f))
-                        }
+                        // The user requested to remove the top Save and Cancel buttons.
+                        // We leave this empty so only the bottom buttons are shown during edit.
                     }
                     else -> {
                         TextButton(onClick = { isEditing = true }) {
@@ -163,11 +151,14 @@ fun SettingsScreen(navigator: Navigator, viewModel: SettingsViewModel) {
                 )
                 SettingsTab.COMMUNICATION -> CommunicationSettingsView(
                     comm = state.settings.communication,
+                    diagnostics = state.diagnostics,
                     isEditing = isEditing,
                     onSave = { updated ->
                         viewModel.onEvent(SettingsUiEvent.UpdateCommunication(updated))
                         isEditing = false
                     },
+                    onTestConnection = { comm -> viewModel.onEvent(SettingsUiEvent.OnTestConnection(comm)) },
+                    onDisconnect = { viewModel.onEvent(SettingsUiEvent.OnDisconnect) },
                     onCancel = { isEditing = false }
                 )
                 SettingsTab.REPORTS -> ReportSettingsView(
@@ -517,8 +508,11 @@ private fun ThemeToggleButton(
 @Composable
 private fun CommunicationSettingsView(
     comm: CommunicationSettings,
+    diagnostics: ConnectionDiagnostics,
     isEditing: Boolean,
     onSave: (CommunicationSettings) -> Unit,
+    onTestConnection: (CommunicationSettings) -> Unit,
+    onDisconnect: () -> Unit,
     onCancel: () -> Unit
 ) {
     var draft by remember(comm) { mutableStateOf(comm) }
@@ -528,13 +522,14 @@ private fun CommunicationSettingsView(
     var keepAliveError by remember { mutableStateOf<String?>(null) }
     var heartbeatError by remember { mutableStateOf<String?>(null) }
     var timeoutError by remember { mutableStateOf<String?>(null) }
+    
+    var passwordVisible by remember { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         SectionHeader("MQTT BROKER CONFIGURATION")
         SettingsCard {
             if (isEditing) {
                 OutlinedTextField(value = draft.mqttBrokerAddress, onValueChange = { draft = draft.copy(mqttBrokerAddress = it) }, label = { Text("Broker IP / Hostname") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                // Port with number validation
                 OutlinedTextField(
                     value = draft.mqttPort.toString(),
                     onValueChange = { v ->
@@ -549,12 +544,47 @@ private fun CommunicationSettingsView(
                     singleLine = true
                 )
                 OutlinedTextField(value = draft.clientId, onValueChange = { draft = draft.copy(clientId = it.trim()) }, label = { Text("Client Identifier") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                OutlinedTextField(value = draft.username, onValueChange = { draft = draft.copy(username = it.trim()) }, label = { Text("Username") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                OutlinedTextField(
+                    value = draft.password,
+                    onValueChange = { draft = draft.copy(password = it) },
+                    label = { Text("Password") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    visualTransformation = if (passwordVisible) androidx.compose.ui.text.input.VisualTransformation.None else androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                    trailingIcon = {
+                        val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Icon(imageVector = image, contentDescription = if (passwordVisible) "Hide password" else "Show password")
+                        }
+                    }
+                )
             } else {
                 ViewRow("Broker Address", comm.mqttBrokerAddress, Icons.Default.Wifi)
                 Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
                 ViewRow("MQTT Port", comm.mqttPort.toString())
                 Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
                 ViewRow("Client ID", comm.clientId)
+                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                ViewRow("Username", if (comm.username.isNotBlank()) comm.username else "(Not Set)")
+            }
+            
+            // Connection Controls
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(
+                    onClick = { onDisconnect() },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Disconnect")
+                }
+                Button(
+                    onClick = { onTestConnection(if (isEditing) draft else comm) },
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Test Connection")
+                }
             }
         }
 
@@ -600,7 +630,6 @@ private fun CommunicationSettingsView(
                     supportingText = timeoutError?.let { { Text(it, color = AppColors.Error) } },
                     singleLine = true
                 )
-                SettingsDropdown("Default QoS Level", draft.defaultQos, MqttQos.entries, { it.displayName }, true) { draft = draft.copy(defaultQos = it) }
                 SwitchRow("Automatic Reconnect", "Retry connection on disconnect.", draft.autoReconnect, true) { draft = draft.copy(autoReconnect = it) }
             } else {
                 ViewRow("Keep Alive", "${comm.keepAliveSeconds}s")
@@ -609,9 +638,43 @@ private fun CommunicationSettingsView(
                 Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
                 ViewRow("Timeout", "${comm.communicationTimeoutMs}ms")
                 Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-                ViewRow("Default QoS", comm.defaultQos.displayName)
-                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
                 ViewRow("Auto Reconnect", if (comm.autoReconnect) "Enabled" else "Disabled")
+            }
+        }
+
+        SectionHeader("COMMUNICATION DIAGNOSTICS")
+        SettingsCard {
+            ViewRow("Connection State", diagnostics.connectionState)
+            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+            ViewRow("Last Error", diagnostics.lastError)
+            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+            ViewRow("Reconnect Count", diagnostics.reconnectCount.toString())
+            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+            ViewRow("MQTT Library", diagnostics.libraryVersion)
+            
+            Spacer(Modifier.height(8.dp))
+            Text("Live Connection Log", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), RoundedCornerShape(8.dp))
+                    .padding(8.dp)
+            ) {
+                // Using LazyColumn would be better, but simpler column for scrolling
+                Column(
+                    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    diagnostics.logs.forEach { logLine ->
+                        Text(
+                            text = logLine,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                        )
+                    }
+                }
             }
         }
 

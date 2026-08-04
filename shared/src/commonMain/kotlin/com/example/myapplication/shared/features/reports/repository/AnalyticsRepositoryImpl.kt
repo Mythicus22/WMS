@@ -1,12 +1,12 @@
 package com.example.myapplication.shared.features.reports.repository
 
 import com.example.myapplication.shared.features.reports.model.*
-import com.example.myapplication.shared.features.shuttle.repository.ShuttleRepository
+import com.example.myapplication.shared.features.device.repository.DiscoveryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class AnalyticsRepositoryImpl(
-    private val shuttleRepo: ShuttleRepository
+    private val shuttleRepo: DiscoveryRepository
 ) : AnalyticsRepository {
 
     private val blue  = 0xFF2196F3L
@@ -21,11 +21,11 @@ class AnalyticsRepositoryImpl(
     private val days7 = (22..28).map { it.toString().padStart(2,'0') }
 
     override fun getAnalyticsDashboard(shuttleId: String?, filter: ReportFilter): Flow<AnalyticsDashboard> {
-        return shuttleRepo.getAllShuttles().map { shuttles ->
+        return shuttleRepo.getAllDevices().map { shuttles ->
             val shuttleNames = if (shuttleId == null || shuttleId == "ALL") {
-                if (shuttles.isEmpty()) listOf("No Shuttles") else shuttles.map { it.name }
+                if (shuttles.isEmpty()) listOf("No Shuttles") else shuttles.map { it.nameToDisplay }
             } else {
-                listOf(shuttles.find { it.id == shuttleId }?.name ?: shuttleId)
+                listOf(shuttles.find { it.deviceId == shuttleId }?.nameToDisplay ?: shuttleId)
             }
 
             val batteryPoints = { offset: Float ->

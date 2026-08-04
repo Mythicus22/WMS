@@ -23,5 +23,5 @@ val settingsModule = module {
     factory { BackupDatabaseUseCase(get()) }
     factory { RestoreDatabaseUseCase(get()) }
 
-    factory { SettingsViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
+    factory { SettingsViewModel(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }

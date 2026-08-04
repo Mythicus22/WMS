@@ -37,9 +37,11 @@ kotlin {
     
     sourceSets {
         androidMain.dependencies {
+            implementation(libs.androidx.activity.compose)
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
             implementation(libs.sqldelight.android.driver)
+            implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -64,6 +66,7 @@ kotlin {
         }
         jvmMain.dependencies {
             implementation(libs.sqldelight.sqlite.driver)
+            implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
         }
     }
 

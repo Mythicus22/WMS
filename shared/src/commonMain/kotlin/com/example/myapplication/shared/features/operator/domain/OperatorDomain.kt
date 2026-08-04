@@ -5,22 +5,22 @@ import com.example.myapplication.shared.features.operator.model.ShuttleCommandTy
 import com.example.myapplication.shared.features.operator.model.ShuttleFault
 import com.example.myapplication.shared.features.operator.model.ShuttleLiveStatus
 import com.example.myapplication.shared.features.operator.repository.CommandRepository
-import com.example.myapplication.shared.features.shuttle.model.Shuttle
-import com.example.myapplication.shared.features.shuttle.repository.ShuttleRepository
+import com.example.myapplication.shared.features.device.model.DiscoveredDevice
+import com.example.myapplication.shared.features.device.repository.DiscoveryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class GetEnabledShuttlesUseCase(
-    private val shuttleRepository: ShuttleRepository
+class GetEnabledDiscoveredDevicesUseCase(
+    private val discoveryRepository: DiscoveryRepository
 ) {
-    operator fun invoke(): Flow<List<Shuttle>> {
-        return shuttleRepository.getAllShuttles().map { list ->
-            list.filter { it.isEnabled }
+    operator fun invoke(): Flow<List<DiscoveredDevice>> {
+        return discoveryRepository.getAllDevices().map { list ->
+            list.filter { it.status == "ONLINE" }
         }
     }
 }
 
-class GetShuttleLiveStatusUseCase(
+class GetDiscoveredDeviceLiveStatusUseCase(
     private val commandRepository: CommandRepository
 ) {
     operator fun invoke(shuttleId: String): Flow<ShuttleLiveStatus> {
@@ -28,7 +28,7 @@ class GetShuttleLiveStatusUseCase(
     }
 }
 
-class GetShuttleFaultsUseCase(
+class GetDiscoveredDeviceFaultsUseCase(
     private val commandRepository: CommandRepository
 ) {
     operator fun invoke(shuttleId: String): Flow<List<ShuttleFault>> {
@@ -36,7 +36,7 @@ class GetShuttleFaultsUseCase(
     }
 }
 
-class SendShuttleCommandUseCase(
+class SendDiscoveredDeviceCommandUseCase(
     private val commandRepository: CommandRepository
 ) {
     suspend operator fun invoke(shuttleId: String, command: ShuttleCommandType): Result<Unit> {

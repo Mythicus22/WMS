@@ -12,7 +12,7 @@ class DashboardRepositoryImpl {
 }
 
 // Shuttle repository implementation
-class ShuttleRepositoryImpl {
+class DiscoveryRepositoryImpl {
     // Empty implementation placeholder
 }
 

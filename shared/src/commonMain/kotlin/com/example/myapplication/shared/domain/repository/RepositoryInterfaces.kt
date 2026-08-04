@@ -1,5 +1,7 @@
 package com.example.myapplication.shared.domain.repository
 
+import com.example.myapplication.shared.features.device.repository.RegisteredShuttleRepository
+
 // Auth repository interface
 interface IAuthRepository {
     // suspend fun login(username: String, password: String): Result<AuthToken>
@@ -13,8 +15,13 @@ interface IDashboardRepository {
 }
 
 // Shuttle repository interface
-interface IShuttleRepository {
+interface IDiscoveryRepository {
     // Placeholder for shuttle-related repository functions
+}
+
+// Registered Shuttle repository interface
+interface IRegisteredShuttleRepository {
+    // Placeholder for registered shuttle-related repository functions
 }
 
 // Operator repository interface

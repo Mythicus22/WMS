@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import com.example.myapplication.shared.core.navigation.Navigator
 import com.example.myapplication.shared.core.navigation.Screen
 import com.example.myapplication.shared.features.operator.viewmodel.OperatorViewModel
-import com.example.myapplication.shared.features.shuttle.model.Shuttle
+import com.example.myapplication.shared.features.device.model.DiscoveredDevice
 import com.example.myapplication.shared.presentation.components.AppToolbar
 import com.example.myapplication.shared.presentation.components.ChipStatus
 import com.example.myapplication.shared.presentation.components.StatusChip
@@ -60,7 +60,7 @@ fun OperatorScreen(
             .background(MaterialTheme.colorScheme.background)
     ) {
         AppToolbar(
-            title = "Operator - Select Shuttle",
+            title = "Operator - Select DiscoveredDevice",
             onNavigationClick = { navigator.goBack() }
         )
 
@@ -85,7 +85,7 @@ fun OperatorScreen(
                 ) {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
-            } else if (state.enabledShuttles.isEmpty()) {
+            } else if (state.enabledDiscoveredDevices.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -93,7 +93,7 @@ fun OperatorScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = state.errorMessage ?: "No enabled shuttles found in database. Enable a shuttle in Shuttle Management first.",
+                        text = state.errorMessage ?: "No enabled shuttles found in database. Enable a shuttle in DiscoveredDevice Management first.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                     )
@@ -103,20 +103,20 @@ fun OperatorScreen(
                     verticalArrangement = Arrangement.spacedBy(AppDimensions.spacing12),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    val rows = state.enabledShuttles.chunked(2)
-                    items(rows) { rowShuttles ->
+                    val rows = state.enabledDiscoveredDevices.chunked(2)
+                    items(rows) { rowDiscoveredDevices ->
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(AppDimensions.spacing12)
                         ) {
-                            for (shuttle in rowShuttles) {
-                                OperatorShuttleCard(
+                            for (shuttle in rowDiscoveredDevices) {
+                                DiscoveredDeviceSelectionCard(
                                     shuttle = shuttle,
-                                    onClick = { navigator.navigateTo(Screen.OperatorConsole(shuttle.id)) },
+                                    onClick = { navigator.navigateTo(Screen.OperatorConsole(shuttle.deviceId)) },
                                     modifier = Modifier.weight(1f)
                                 )
                             }
-                            if (rowShuttles.size == 1) {
+                            if (rowDiscoveredDevices.size == 1) {
                                 Spacer(modifier = Modifier.weight(1f))
                             }
                         }
@@ -128,24 +128,23 @@ fun OperatorScreen(
 }
 
 @Composable
-private fun OperatorShuttleCard(
-    shuttle: Shuttle,
+private fun DiscoveredDeviceSelectionCard(
+    shuttle: DiscoveredDevice,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
-            .clickable { onClick() }
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
-                shape = RoundedCornerShape(12.dp)
-            ),
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f), RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
-            modifier = Modifier.padding(AppDimensions.spacing16)
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            horizontalAlignment = Alignment.Start
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -174,13 +173,13 @@ private fun OperatorShuttleCard(
 
                     Column {
                         Text(
-                            text = shuttle.name,
+                            text = shuttle.nameToDisplay,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "ID: ${shuttle.id} • ${shuttle.plcIpAddress}",
+                            text = "ID: ${shuttle.deviceId} • ${shuttle.serialNumber}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )

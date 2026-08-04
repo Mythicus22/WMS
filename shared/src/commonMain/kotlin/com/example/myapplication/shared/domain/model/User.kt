@@ -18,10 +18,12 @@ data class User(
     val isAdmin: Boolean get() = role == UserRole.ADMIN
 
     fun hasFeature(feature: FeaturePermission): Boolean {
+        if (isAdmin) return true
         return grantedFeatures.contains(feature)
     }
 
     fun hasSetting(setting: SettingPermission): Boolean {
+        if (isAdmin) return true
         return grantedSettings.contains(setting)
     }
 }

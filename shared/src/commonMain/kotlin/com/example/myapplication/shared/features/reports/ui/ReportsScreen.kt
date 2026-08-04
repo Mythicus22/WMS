@@ -18,8 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.shared.core.navigation.Navigator
 import com.example.myapplication.shared.core.navigation.Screen
-import com.example.myapplication.shared.features.shuttle.model.Shuttle
-import com.example.myapplication.shared.features.shuttle.repository.ShuttleRepository
+import com.example.myapplication.shared.features.device.model.DiscoveredDevice
+import com.example.myapplication.shared.features.device.repository.DiscoveryRepository
 import com.example.myapplication.shared.presentation.components.AppToolbar
 import com.example.myapplication.shared.presentation.theme.AppColors
 import com.example.myapplication.shared.presentation.theme.AppDimensions
@@ -30,8 +30,8 @@ import org.koin.mp.KoinPlatform.getKoin
 // ---------------------------------------------------------------------------
 @Composable
 fun ReportsScreen(navigator: Navigator) {
-    val shuttleRepository: ShuttleRepository = remember { getKoin().get() }
-    val shuttles by shuttleRepository.getAllShuttles().collectAsState(initial = emptyList())
+    val discoveryRepository: DiscoveryRepository = remember { getKoin().get() }
+    val shuttles by discoveryRepository.getAllDevices().collectAsState(initial = emptyList())
 
     Column(
         modifier = Modifier
@@ -80,7 +80,7 @@ fun ReportsScreen(navigator: Navigator) {
                 )
             }
 
-            val activeShuttles = shuttles.filter { it.isEnabled }
+            val activeShuttles = shuttles.filter { it.status.equals("ONLINE", ignoreCase = true) }
             activeShuttles.chunked(2).forEach { rowShuttles ->
                 item {
                     Row(
@@ -90,7 +90,7 @@ fun ReportsScreen(navigator: Navigator) {
                         rowShuttles.forEach { shuttle ->
                             ShuttleSelectionCard(
                                 shuttle = shuttle,
-                                onClick = { navigator.navigateTo(Screen.Reports(shuttleId = shuttle.id)) },
+                                onClick = { navigator.navigateTo(Screen.Reports(shuttleId = shuttle.deviceId)) },
                                 modifier = Modifier.weight(1f)
                             )
                         }
@@ -167,7 +167,7 @@ private fun AllShuttlesCard(onClick: () -> Unit) {
 
 @Composable
 private fun ShuttleSelectionCard(
-    shuttle: Shuttle,
+    shuttle: DiscoveredDevice,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -203,9 +203,9 @@ private fun ShuttleSelectionCard(
                 }
             }
             Spacer(Modifier.height(12.dp))
-            Text(shuttle.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(shuttle.nameToDisplay, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(2.dp))
-            Text("ID: ${shuttle.id}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f))
+            Text("ID: ${shuttle.deviceId}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f))
         }
     }
 }

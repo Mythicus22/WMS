@@ -436,6 +436,8 @@ private fun UserEditorDialog(
 
                 Spacer(modifier = Modifier.height(AppDimensions.spacing8))
 
+                val isAdminMain = userToEdit?.username?.lowercase() == "admin"
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(AppDimensions.spacing4)
@@ -445,9 +447,10 @@ private fun UserEditorDialog(
                         Surface(
                             modifier = Modifier
                                 .weight(1f)
-                                .clickable { selectedRole = role },
+                                .clickable(enabled = !isAdminMain) { selectedRole = role },
                             shape = RoundedCornerShape(8.dp),
-                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                         ) {
                             Box(
                                 modifier = Modifier.padding(vertical = AppDimensions.spacing8),
@@ -456,8 +459,8 @@ private fun UserEditorDialog(
                                 Text(
                                     text = role.displayName,
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isAdminMain && !isSelected) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else Color.Unspecified
                                 )
                             }
                         }
@@ -525,7 +528,7 @@ private fun UserEditorDialog(
                             color = AppColors.Error.copy(alpha = 0.3f),
                             shape = RoundedCornerShape(8.dp)
                         )
-                        .clickable {
+                        .clickable(enabled = !isAdminMain) {
                             if (!isAdminPowerChecked) {
                                 showAdminConfirmationDialog = true
                             } else {
@@ -533,7 +536,7 @@ private fun UserEditorDialog(
                             }
                         },
                     shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(containerColor = AppColors.Error.copy(alpha = 0.12f))
+                    colors = CardDefaults.cardColors(containerColor = AppColors.Error.copy(alpha = if (isAdminMain) 0.05f else 0.12f))
                 ) {
                     Row(
                         modifier = Modifier
@@ -543,6 +546,7 @@ private fun UserEditorDialog(
                     ) {
                         Checkbox(
                             checked = isAdminPowerChecked,
+                            enabled = !isAdminMain,
                             onCheckedChange = { checked ->
                                 if (checked == true) {
                                     showAdminConfirmationDialog = true
@@ -552,16 +556,17 @@ private fun UserEditorDialog(
                             },
                             colors = CheckboxDefaults.colors(
                                 checkedColor = AppColors.Error,
-                                checkmarkColor = Color.White
+                                checkmarkColor = Color.White,
+                                disabledCheckedColor = AppColors.Error.copy(alpha = 0.5f)
                             )
                         )
                         Spacer(modifier = Modifier.width(AppDimensions.spacing4))
-                        Column {
+                        Column(modifier = Modifier.padding(start = 4.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
                                     imageVector = Icons.Default.Shield,
                                     contentDescription = null,
-                                    tint = AppColors.Error,
+                                    tint = if (isAdminMain) AppColors.Error.copy(alpha = 0.5f) else AppColors.Error,
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
@@ -569,11 +574,11 @@ private fun UserEditorDialog(
                                     text = "User Management (Admin Powers)",
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color = AppColors.Error
+                                    color = if (isAdminMain) AppColors.Error.copy(alpha = 0.5f) else AppColors.Error
                                 )
                             }
                             Text(
-                                text = "Grants full administrative privileges (create, edit, delete users and grant permissions).",
+                                text = if (isAdminMain) "Cannot be disabled for the main admin account." else "Grants full administrative privileges (create, edit, delete users and grant permissions).",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                             )

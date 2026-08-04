@@ -32,7 +32,7 @@ sealed class Screen(val route: String) {
     data class Reports(val shuttleId: String) : Screen("reports")
     object Settings : Screen("settings")
     object UserManagement : Screen("usermanagement")
-    data class AddEditShuttle(val id: String? = null) : Screen("addEditShuttle")
+
 }
 
 class Navigator(initial: Screen = Screen.Splash) {

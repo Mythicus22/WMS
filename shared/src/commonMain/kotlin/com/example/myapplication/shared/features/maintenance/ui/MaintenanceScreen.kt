@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.example.myapplication.shared.core.navigation.Navigator
 import com.example.myapplication.shared.core.navigation.Screen
 import com.example.myapplication.shared.features.maintenance.viewmodel.MaintenanceViewModel
-import com.example.myapplication.shared.features.shuttle.model.Shuttle
+import com.example.myapplication.shared.features.device.model.DiscoveredDevice
 import com.example.myapplication.shared.presentation.components.AppToolbar
 import com.example.myapplication.shared.presentation.components.ChipStatus
 import com.example.myapplication.shared.presentation.components.StatusChip
@@ -107,7 +107,7 @@ fun MaintenanceScreen(
                             for (shuttle in rowShuttles) {
                                 MaintenanceShuttleCard(
                                     shuttle = shuttle,
-                                    onClick = { navigator.navigateTo(Screen.MaintenanceConsole(shuttle.id)) },
+                                    onClick = { navigator.navigateTo(Screen.MaintenanceConsole(shuttle.deviceId)) },
                                     modifier = Modifier.weight(1f)
                                 )
                             }
@@ -124,7 +124,7 @@ fun MaintenanceScreen(
 
 @Composable
 private fun MaintenanceShuttleCard(
-    shuttle: Shuttle,
+    shuttle: DiscoveredDevice,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -171,13 +171,13 @@ private fun MaintenanceShuttleCard(
 
                     Column {
                         Text(
-                            text = shuttle.name,
+                            text = shuttle.nameToDisplay,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "ID: ${shuttle.id}",
+                            text = "ID: ${shuttle.deviceId}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
@@ -186,8 +186,8 @@ private fun MaintenanceShuttleCard(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     StatusChip(
-                        text = if (shuttle.isEnabled) "ONLINE" else "OFFLINE",
-                        status = if (shuttle.isEnabled) ChipStatus.SUCCESS else ChipStatus.INFO
+                        text = if (shuttle.status == "ONLINE") "ONLINE" else "OFFLINE",
+                        status = if (shuttle.status == "ONLINE") ChipStatus.SUCCESS else ChipStatus.INFO
                     )
                     Spacer(modifier = Modifier.width(AppDimensions.spacing4))
                     Icon(

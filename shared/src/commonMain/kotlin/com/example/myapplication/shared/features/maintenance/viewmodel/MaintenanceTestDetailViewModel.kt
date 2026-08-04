@@ -8,8 +8,8 @@ import com.example.myapplication.shared.features.maintenance.domain.ResetMainten
 import com.example.myapplication.shared.features.maintenance.domain.RunMaintenanceTestUseCase
 import com.example.myapplication.shared.features.maintenance.model.TestDefinition
 import com.example.myapplication.shared.features.maintenance.model.TestExecutionState
-import com.example.myapplication.shared.features.shuttle.model.Shuttle
-import com.example.myapplication.shared.features.shuttle.repository.ShuttleRepository
+import com.example.myapplication.shared.features.device.model.DiscoveredDevice
+import com.example.myapplication.shared.features.device.repository.DiscoveryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 data class MaintenanceTestDetailUiState(
     val shuttleId: String = "",
     val testId: String = "",
-    val shuttle: Shuttle? = null,
+    val shuttle: DiscoveredDevice? = null,
     val definition: TestDefinition? = null,
     val executionState: TestExecutionState = TestExecutionState(testId = "", shuttleId = ""),
     val isRunning: Boolean = false,
@@ -33,7 +33,7 @@ sealed class MaintenanceTestEvent {
 }
 
 class MaintenanceTestDetailViewModel(
-    private val shuttleRepository: ShuttleRepository,
+    private val discoveryRepository: DiscoveryRepository,
     private val getTestDetailUseCase: GetTestDetailUseCase,
     private val runMaintenanceTestUseCase: RunMaintenanceTestUseCase,
     private val resetMaintenanceTestUseCase: ResetMaintenanceTestUseCase
@@ -47,7 +47,7 @@ class MaintenanceTestDetailViewModel(
         _uiState.update { curr -> curr.copy(shuttleId = shuttleId, testId = testId, definition = def) }
 
         viewModelScope.launch {
-            val shuttleObj = shuttleRepository.getShuttleById(shuttleId)
+            val shuttleObj = discoveryRepository.getDeviceById(shuttleId)
             _uiState.update { curr -> curr.copy(shuttle = shuttleObj) }
         }
 

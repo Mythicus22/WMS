@@ -5,6 +5,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.ui.Modifier
 import com.example.myapplication.shared.core.navigation.Navigator
 import com.example.myapplication.shared.core.navigation.Screen
 import com.example.myapplication.shared.domain.usecase.GetCurrentUserUseCase
@@ -29,10 +33,10 @@ import com.example.myapplication.shared.features.operator.viewmodel.OperatorView
 import com.example.myapplication.shared.features.reports.ui.ReportsMainScreen
 import com.example.myapplication.shared.features.reports.ui.ReportsScreen
 import com.example.myapplication.shared.features.reports.viewmodel.ReportsViewModel
-import com.example.myapplication.shared.features.shuttle.repository.ShuttleRepository
+import com.example.myapplication.shared.features.device.repository.DiscoveryRepository
 import com.example.myapplication.shared.features.settings.ui.SettingsScreen
 import com.example.myapplication.shared.features.settings.viewmodel.SettingsViewModel
-import com.example.myapplication.shared.features.shuttle.ui.ShuttleScreen
+
 import com.example.myapplication.shared.features.usermanagement.ui.UserManagementScreen
 import com.example.myapplication.shared.features.usermanagement.viewmodel.UserManagementViewModel
 import org.koin.mp.KoinPlatform.getKoin
@@ -54,30 +58,30 @@ fun AppNavHost(navigator: Navigator) {
         return
     }
 
-    when (screenState) {
-        is Screen.Splash -> SplashScreen(navigator = navigator)
-        is Screen.Login -> {
-            val authViewModel: AuthViewModel = remember { getKoin().get() }
-            LoginScreen(navigator = navigator, viewModel = authViewModel)
-        }
+    Box(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
+        when (screenState) {
+            is Screen.Splash -> SplashScreen(navigator = navigator)
+            is Screen.Login -> {
+                val authViewModel: AuthViewModel = remember { getKoin().get() }
+                LoginScreen(navigator = navigator, viewModel = authViewModel)
+            }
 
-        else -> {
-            when (screenState) {
+            else -> {
+                // BackHandler only for screens beyond root/login
+                if (screenState != Screen.Dashboard) {
+                    com.example.myapplication.shared.core.navigation.BackHandler {
+                        navigator.goBack()
+                    }
+                }
+
+                when (screenState) {
                 is Screen.Dashboard -> {
                     val dashboardViewModel: DashboardViewModel = remember { getKoin().get() }
                     DashboardScreen(navigator = navigator, viewModel = dashboardViewModel)
                 }
                 is Screen.Shuttle -> {
-                    val shuttleViewModel: com.example.myapplication.shared.features.shuttle.viewmodel.ShuttleViewModel = remember { getKoin().get() }
-                    ShuttleScreen(navigator = navigator, viewModel = shuttleViewModel)
-                }
-                is Screen.AddEditShuttle -> {
-                    val addEditShuttleViewModel: com.example.myapplication.shared.features.shuttle.viewmodel.AddEditShuttleViewModel = remember { getKoin().get() }
-                    com.example.myapplication.shared.features.shuttle.ui.AddEditShuttleScreen(
-                        navigator = navigator,
-                        viewModel = addEditShuttleViewModel,
-                        shuttleId = (screenState as Screen.AddEditShuttle).id
-                    )
+                    val shuttleViewModel: com.example.myapplication.shared.features.device.viewmodel.DeviceManagementViewModel = remember { getKoin().get() }
+                    com.example.myapplication.shared.features.device.ui.DeviceManagementScreen(navigator = navigator, viewModel = shuttleViewModel)
                 }
 
                 is Screen.Operator -> {
@@ -95,10 +99,10 @@ fun AppNavHost(navigator: Navigator) {
                 is Screen.DiagnosticsShuttleSelect -> DiagnosticsScreen(navigator)
                 is Screen.DiagnosticsDashboard -> {
                     val currentScreen = screenState as Screen.DiagnosticsDashboard
-                    val shuttleRepo: ShuttleRepository = remember { getKoin().get() }
-                    val shuttles by shuttleRepo.getAllShuttles().collectAsState(initial = emptyList())
+                    val shuttleRepo: DiscoveryRepository = remember { getKoin().get() }
+                    val shuttles by shuttleRepo.getAllDevices().collectAsState(initial = emptyList())
                     val shuttleName = if (currentScreen.shuttleId == "ALL") "All Shuttles"
-                        else shuttles.find { it.id == currentScreen.shuttleId }?.name ?: currentScreen.shuttleId
+                        else shuttles.find { it.deviceId == currentScreen.shuttleId }?.nameToDisplay ?: currentScreen.shuttleId
                     val diagnosticsDashboardViewModel: DiagnosticsDashboardViewModel = remember(currentScreen.shuttleId) {
                         getKoin().get { org.koin.core.parameter.parametersOf(currentScreen.shuttleId, shuttleName) }
                     }
@@ -135,10 +139,10 @@ fun AppNavHost(navigator: Navigator) {
                 is Screen.Reports -> {
                     val currentScreen = screenState as Screen.Reports
                     val sid = currentScreen.shuttleId.takeIf { it != "ALL" }
-                    val shuttleRepo: ShuttleRepository = remember { getKoin().get() }
-                    val shuttles by shuttleRepo.getAllShuttles().collectAsState(initial = emptyList())
+                    val shuttleRepo: DiscoveryRepository = remember { getKoin().get() }
+                    val shuttles by shuttleRepo.getAllDevices().collectAsState(initial = emptyList())
                     val shuttleName = if (currentScreen.shuttleId == "ALL") "All Shuttles"
-                        else shuttles.find { it.id == currentScreen.shuttleId }?.name ?: currentScreen.shuttleId
+                        else shuttles.find { it.deviceId == currentScreen.shuttleId }?.nameToDisplay ?: currentScreen.shuttleId
                     val reportsViewModel: ReportsViewModel = remember(currentScreen.shuttleId) {
                         getKoin().get { org.koin.core.parameter.parametersOf(sid, shuttleName) }
                     }
@@ -156,4 +160,5 @@ fun AppNavHost(navigator: Navigator) {
             }
         }
     }
+}
 }

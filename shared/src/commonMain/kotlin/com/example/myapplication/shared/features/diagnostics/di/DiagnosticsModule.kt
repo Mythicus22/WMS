@@ -6,7 +6,7 @@ import com.example.myapplication.shared.features.diagnostics.viewmodel.Diagnosti
 import org.koin.dsl.module
 
 val diagnosticsModule = module {
-    single<DiagnosticsRepository> { DiagnosticsRepositoryImpl() }
+    single<DiagnosticsRepository> { DiagnosticsRepositoryImpl(get()) }
     
     factory { (shuttleId: String, shuttleName: String) ->
         DiagnosticsDashboardViewModel(
@@ -16,4 +16,3 @@ val diagnosticsModule = module {
         )
     }
 }
-

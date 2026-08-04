@@ -154,23 +154,19 @@ fun MaintenanceTestDetailScreen(
 
                 Spacer(modifier = Modifier.height(AppDimensions.spacing16))
 
-                // 4. Test Objective, Description & Preconditions
-                TestOverviewCard(def = def)
+                // Row 1: Objective & Telemetry
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(AppDimensions.spacing16)) {
+                    Box(modifier = Modifier.weight(1f)) { TestOverviewCard(def = def) }
+                    Box(modifier = Modifier.weight(1f)) { TelemetryValuesCard(exec = exec) }
+                }
 
                 Spacer(modifier = Modifier.height(AppDimensions.spacing16))
 
-                // 5. Current Mock PLC & Sensor Values
-                TelemetryValuesCard(exec = exec)
-
-                Spacer(modifier = Modifier.height(AppDimensions.spacing16))
-
-                // 6. Expected Responses & Behaviour
-                ExpectedResponsesCard(def = def)
-
-                Spacer(modifier = Modifier.height(AppDimensions.spacing16))
-
-                // 7. Result Summary & Pass/Fail Status
-                ResultSummaryCard(exec = exec)
+                // Row 2: Expected Responses & Result Summary
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(AppDimensions.spacing16)) {
+                    Box(modifier = Modifier.weight(1f)) { ExpectedResponsesCard(def = def) }
+                    Box(modifier = Modifier.weight(1f)) { ResultSummaryCard(exec = exec) }
+                }
 
                 Spacer(modifier = Modifier.height(AppDimensions.spacing16))
 

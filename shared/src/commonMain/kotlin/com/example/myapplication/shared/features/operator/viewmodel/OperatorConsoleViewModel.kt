@@ -3,14 +3,14 @@ package com.example.myapplication.shared.features.operator.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.myapplication.shared.core.common.Result
-import com.example.myapplication.shared.features.operator.domain.GetShuttleFaultsUseCase
-import com.example.myapplication.shared.features.operator.domain.GetShuttleLiveStatusUseCase
-import com.example.myapplication.shared.features.operator.domain.SendShuttleCommandUseCase
+import com.example.myapplication.shared.features.operator.domain.GetDiscoveredDeviceFaultsUseCase
+import com.example.myapplication.shared.features.operator.domain.GetDiscoveredDeviceLiveStatusUseCase
+import com.example.myapplication.shared.features.operator.domain.SendDiscoveredDeviceCommandUseCase
 import com.example.myapplication.shared.features.operator.model.ShuttleCommandType
 import com.example.myapplication.shared.features.operator.model.ShuttleFault
 import com.example.myapplication.shared.features.operator.model.ShuttleLiveStatus
-import com.example.myapplication.shared.features.shuttle.model.Shuttle
-import com.example.myapplication.shared.features.shuttle.repository.ShuttleRepository
+import com.example.myapplication.shared.features.device.model.DiscoveredDevice
+import com.example.myapplication.shared.features.device.repository.DiscoveryRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 
 data class OperatorConsoleUiState(
     val shuttleId: String = "",
-    val shuttle: Shuttle? = null,
+    val shuttle: DiscoveredDevice? = null,
     val liveStatus: ShuttleLiveStatus = ShuttleLiveStatus(shuttleId = ""),
     val activeFaults: List<ShuttleFault> = emptyList(),
     val isCommandExecuting: Boolean = false,
@@ -33,10 +33,10 @@ sealed class OperatorConsoleEvent {
 }
 
 class OperatorConsoleViewModel(
-    private val shuttleRepository: ShuttleRepository,
-    private val getShuttleLiveStatusUseCase: GetShuttleLiveStatusUseCase,
-    private val getShuttleFaultsUseCase: GetShuttleFaultsUseCase,
-    private val sendShuttleCommandUseCase: SendShuttleCommandUseCase
+    private val discoveryRepository: DiscoveryRepository,
+    private val getDiscoveredDeviceLiveStatusUseCase: GetDiscoveredDeviceLiveStatusUseCase,
+    private val getDiscoveredDeviceFaultsUseCase: GetDiscoveredDeviceFaultsUseCase,
+    private val sendDiscoveredDeviceCommandUseCase: SendDiscoveredDeviceCommandUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(OperatorConsoleUiState())
@@ -47,20 +47,20 @@ class OperatorConsoleViewModel(
 
         // Fetch shuttle DB info
         viewModelScope.launch {
-            val shuttleObj = shuttleRepository.getShuttleById(shuttleId)
+            val shuttleObj = discoveryRepository.getDeviceById(shuttleId)
             _uiState.update { it.copy(shuttle = shuttleObj) }
         }
 
         // Observe Live Status telemetry
         viewModelScope.launch {
-            getShuttleLiveStatusUseCase(shuttleId).collect { status ->
+            getDiscoveredDeviceLiveStatusUseCase(shuttleId).collect { status ->
                 _uiState.update { it.copy(liveStatus = status) }
             }
         }
 
         // Observe Active Faults
         viewModelScope.launch {
-            getShuttleFaultsUseCase(shuttleId).collect { faults ->
+            getDiscoveredDeviceFaultsUseCase(shuttleId).collect { faults ->
                 _uiState.update { it.copy(activeFaults = faults) }
             }
         }
@@ -79,12 +79,12 @@ class OperatorConsoleViewModel(
     }
 
     private fun executeCommand(command: ShuttleCommandType) {
-        val currentShuttleId = _uiState.value.shuttleId
-        if (currentShuttleId.isBlank()) return
+        val currentDiscoveredDeviceId = _uiState.value.shuttleId
+        if (currentDiscoveredDeviceId.isBlank()) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isCommandExecuting = true, commandFeedback = null) }
-            when (val result = sendShuttleCommandUseCase(currentShuttleId, command)) {
+            when (val result = sendDiscoveredDeviceCommandUseCase(currentDiscoveredDeviceId, command)) {
                 is Result.Success -> {
                     _uiState.update {
                         it.copy(

@@ -11,7 +11,7 @@ interface AuthRepository {
 interface DashboardRepository {
 }
 
-interface ShuttleRepository {
+interface DiscoveryRepository {
 }
 
 interface OperatorRepository {

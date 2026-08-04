@@ -54,11 +54,11 @@ fun MaintenanceConsoleScreen(
     shuttleId: String
 ) {
     LaunchedEffect(shuttleId) {
-        viewModel.initialize(shuttleId)
+        viewModel.loadShuttle(shuttleId)
     }
 
     val state by viewModel.uiState.collectAsState()
-    val shuttleTitle = state.shuttle?.name ?: "Shuttle $shuttleId"
+    val shuttleTitle = state.shuttle?.nameToDisplay ?: "Device $shuttleId"
 
     Column(
         modifier = Modifier

@@ -36,42 +36,50 @@ DELETE FROM UserEntity WHERE id = ?;
 getUserCount:
 SELECT count(*) FROM UserEntity;
 
-CREATE TABLE ShuttleEntity (
-    id TEXT PRIMARY KEY NOT NULL,
-    name TEXT NOT NULL,
-    description TEXT,
-    plcIpAddress TEXT NOT NULL,
-    mqttPublishTopic TEXT NOT NULL,
-    mqttSubscribeTopic TEXT NOT NULL,
-    communicationTimeout INTEGER NOT NULL,
-    heartbeatInterval INTEGER NOT NULL,
-    firmwareVersion TEXT NOT NULL,
-    isEnabled INTEGER NOT NULL,
-    createdAt INTEGER NOT NULL,
+CREATE TABLE DeviceAliasEntity (
+    deviceId TEXT PRIMARY KEY NOT NULL,
+    alias TEXT,
+    notes TEXT,
     updatedAt INTEGER NOT NULL
 );
 
-insertShuttle:
-INSERT OR REPLACE INTO ShuttleEntity(
-    id, name, description, plcIpAddress, mqttPublishTopic, mqttSubscribeTopic,
-    communicationTimeout, heartbeatInterval, firmwareVersion, isEnabled, createdAt, updatedAt
-) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+insertDeviceAlias:
+INSERT OR REPLACE INTO DeviceAliasEntity(
+    deviceId, alias, notes, updatedAt
+) VALUES (?, ?, ?, ?);
 
-getAllShuttles:
-SELECT * FROM ShuttleEntity;
+getDeviceAlias:
+SELECT * FROM DeviceAliasEntity WHERE deviceId = ?;
 
-getShuttleById:
-SELECT * FROM ShuttleEntity WHERE id = ?;
+getAllDeviceAliases:
+SELECT * FROM DeviceAliasEntity;
 
-deleteShuttleById:
-DELETE FROM ShuttleEntity WHERE id = ?;
+deleteDeviceAlias:
+DELETE FROM DeviceAliasEntity WHERE deviceId = ?;
 
-updateShuttleStatus:
-UPDATE ShuttleEntity SET isEnabled = ?, updatedAt = ? WHERE id = ?;
+CREATE TABLE RegisteredShuttleEntity (
+    deviceId TEXT PRIMARY KEY NOT NULL,
+    serialNumber TEXT NOT NULL,
+    displayName TEXT NOT NULL,
+    protocolVersion TEXT NOT NULL,
+    firmwareVersion TEXT NOT NULL,
+    hardwareVersion TEXT NOT NULL,
+    manufacturer TEXT NOT NULL,
+    status TEXT NOT NULL,
+    lastSeenAt INTEGER NOT NULL
+);
 
-getShuttleCounts:
-SELECT 
-    COUNT(*) AS total,
-    SUM(CASE WHEN isEnabled = 1 THEN 1 ELSE 0 END) AS enabled,
-    SUM(CASE WHEN isEnabled = 0 THEN 1 ELSE 0 END) AS disabled
-FROM ShuttleEntity;
+insertRegisteredShuttle:
+INSERT OR REPLACE INTO RegisteredShuttleEntity(
+    deviceId, serialNumber, displayName, protocolVersion, firmwareVersion,
+    hardwareVersion, manufacturer, status, lastSeenAt
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+getAllRegisteredShuttles:
+SELECT * FROM RegisteredShuttleEntity;
+
+deleteRegisteredShuttle:
+DELETE FROM RegisteredShuttleEntity WHERE deviceId = ?;
+
+deleteAllRegisteredShuttles:
+DELETE FROM RegisteredShuttleEntity;

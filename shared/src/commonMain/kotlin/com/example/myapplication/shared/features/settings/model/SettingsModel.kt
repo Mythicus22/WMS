@@ -71,12 +71,6 @@ enum class LogLevel(val displayName: String, val description: String, val level:
     VERBOSE("Verbose — Full Telemetry", "All data including sensor readings", 5)
 }
 
-// MQTT QoS LEVEL
-enum class MqttQos(val displayName: String, val level: Int) {
-    AT_MOST_ONCE("QoS 0 — At Most Once (Fire & Forget)", 0),
-    AT_LEAST_ONCE("QoS 1 — At Least Once (Guaranteed)", 1),
-    EXACTLY_ONCE("QoS 2 — Exactly Once (Strict)", 2)
-}
 
 // BACKUP ENTRY
 @Serializable
@@ -90,6 +84,17 @@ data class BackupEntry(
 )
 
 // SETTINGS DATA CLASSES
+
+data class ConnectionDiagnostics(
+    val connectionState: String = "DISCONNECTED",
+    val reconnectCount: Int = 0,
+    val lastError: String = "None",
+    val lastConnectedTime: Long = 0L,
+    val lastDisconnectedTime: Long = 0L,
+    val lastHeartbeatTime: Long = 0L,
+    val libraryVersion: String = "Paho MQTT 1.2.5",
+    val logs: List<String> = emptyList()
+)
 
 @Serializable
 data class GeneralSettings(
@@ -108,14 +113,15 @@ data class GeneralSettings(
 
 @Serializable
 data class CommunicationSettings(
-    val mqttBrokerAddress: String = "192.168.1.100",
+    val mqttBrokerAddress: String = "192.168.68.78",
     val mqttPort: Int = 1883,
-    val clientId: String = "WMS_OPERATOR_CONSOLE_01",
+    val clientId: String = "TABLET01",
+    val username: String = "wms_app",
+    val password: String = "",
     val keepAliveSeconds: Int = 60,
     val heartbeatIntervalMs: Int = 1000,
     val communicationTimeoutMs: Int = 5000,
-    val autoReconnect: Boolean = true,
-    val defaultQos: MqttQos = MqttQos.AT_LEAST_ONCE
+    val autoReconnect: Boolean = true
 )
 
 @Serializable

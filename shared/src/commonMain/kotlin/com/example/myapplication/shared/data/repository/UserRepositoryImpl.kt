@@ -21,8 +21,8 @@ class UserRepositoryImpl(
     private val queries = database.appDatabaseQueries
 
     override suspend fun seedDefaultAdminIfNeeded() {
-        val count = queries.getUserCount().executeAsOne()
-        if (count == 0L) {
+        val adminUser = getUserByUsername("admin")
+        if (adminUser == null) {
             val defaultAdmin = User(
                 id = "user_admin_001",
                 username = "admin",
@@ -41,6 +41,15 @@ class UserRepositoryImpl(
                 grantedSettingsCsv = defaultAdmin.grantedSettings.joinToString(",") { it.key },
                 createdAt = defaultAdmin.createdAt
             )
+        } else {
+            // Restore admin privileges if lost
+            if (adminUser.role != UserRole.ADMIN || !adminUser.grantedFeatures.contains(FeaturePermission.USER_MANAGEMENT)) {
+                val restoredAdmin = adminUser.copy(
+                    role = UserRole.ADMIN,
+                    grantedFeatures = adminUser.grantedFeatures + FeaturePermission.USER_MANAGEMENT
+                )
+                updateUser(restoredAdmin)
+            }
         }
     }
 
@@ -84,15 +93,24 @@ class UserRepositoryImpl(
     }
 
     override suspend fun updateUser(user: User): Result<User> {
+        var userToUpdate = user
+        if (user.username.lowercase() == "admin") {
+            // Prevent removing admin role and user management feature from the main admin account
+            userToUpdate = userToUpdate.copy(
+                role = UserRole.ADMIN,
+                grantedFeatures = user.grantedFeatures + FeaturePermission.USER_MANAGEMENT
+            )
+        }
+
         queries.updateUser(
-            username = user.username,
-            passwordHash = user.passwordHash,
-            role = user.role.key,
-            grantedFeaturesCsv = user.grantedFeatures.joinToString(",") { it.key },
-            grantedSettingsCsv = user.grantedSettings.joinToString(",") { it.key },
-            id = user.id
+            username = userToUpdate.username,
+            passwordHash = userToUpdate.passwordHash,
+            role = userToUpdate.role.key,
+            grantedFeaturesCsv = userToUpdate.grantedFeatures.joinToString(",") { it.key },
+            grantedSettingsCsv = userToUpdate.grantedSettings.joinToString(",") { it.key },
+            id = userToUpdate.id
         )
-        return Result.success(user)
+        return Result.success(userToUpdate)
     }
 
     override suspend fun deleteUser(userId: String): Result<Boolean> {

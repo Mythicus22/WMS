@@ -4,17 +4,17 @@ import com.example.myapplication.shared.core.common.Result
 import com.example.myapplication.shared.features.maintenance.model.TestDefinition
 import com.example.myapplication.shared.features.maintenance.model.TestExecutionState
 import com.example.myapplication.shared.features.maintenance.repository.MaintenanceRepository
-import com.example.myapplication.shared.features.shuttle.model.Shuttle
-import com.example.myapplication.shared.features.shuttle.repository.ShuttleRepository
+import com.example.myapplication.shared.features.device.model.DiscoveredDevice
+import com.example.myapplication.shared.features.device.repository.DiscoveryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class GetEnabledShuttlesForMaintenanceUseCase(
-    private val shuttleRepository: ShuttleRepository
+    private val discoveryRepository: DiscoveryRepository
 ) {
-    operator fun invoke(): Flow<List<Shuttle>> {
-        return shuttleRepository.getAllShuttles().map { shuttles ->
-            shuttles.filter { it.isEnabled }
+    operator fun invoke(): Flow<List<DiscoveredDevice>> {
+        return discoveryRepository.getAllDevices().map { shuttles ->
+            shuttles.filter { it.status == "ONLINE" }
         }
     }
 }

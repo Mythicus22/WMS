@@ -95,3 +95,6 @@ google-services.json
 .env
 .env.*
 secret.properties
+
+# Ignore WSP protocol documentation/repository
+wsp/

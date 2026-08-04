@@ -15,9 +15,9 @@ import kotlinx.coroutines.launch
 data class DashboardUiState(
     val currentUser: User? = null,
     val availableFeatures: List<FeaturePermission> = emptyList(),
-    val totalShuttles: Long = 0,
-    val onlineShuttles: Long = 0,
-    val offlineShuttles: Long = 0
+    val totalDiscoveredDevices: Long = 0,
+    val onlineDiscoveredDevices: Long = 0,
+    val offlineDiscoveredDevices: Long = 0
 )
 
 sealed interface DashboardUiEvent : UiEvent {
@@ -31,22 +31,22 @@ sealed interface DashboardUiEffect : UiEffect {
 class DashboardViewModel(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val logoutUseCase: LogoutUseCase,
-    private val shuttleRepository: com.example.myapplication.shared.features.shuttle.repository.ShuttleRepository
+    private val discoveryRepository: com.example.myapplication.shared.features.device.repository.DiscoveryRepository
 ) : BaseViewModel<DashboardUiState, DashboardUiEvent, DashboardUiEffect>() {
 
     init {
         setState(DashboardUiState())
         observeCurrentUser()
-        observeShuttleCounts()
+        observeDeviceCounts()
     }
 
-    private fun observeShuttleCounts() {
-        shuttleRepository.getShuttleCounts().onEach { counts ->
+    private fun observeDeviceCounts() {
+        discoveryRepository.getDeviceCounts().onEach { counts ->
             val currentState = uiState.value ?: DashboardUiState()
             setState(currentState.copy(
-                totalShuttles = counts.total,
-                onlineShuttles = counts.enabled,
-                offlineShuttles = counts.disabled
+                totalDiscoveredDevices = counts.total,
+                onlineDiscoveredDevices = counts.online,
+                offlineDiscoveredDevices = counts.offline
             ))
         }.launchIn(viewModelScope)
     }

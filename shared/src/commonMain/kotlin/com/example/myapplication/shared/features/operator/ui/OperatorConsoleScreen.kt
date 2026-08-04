@@ -78,7 +78,7 @@ fun OperatorConsoleScreen(
     }
 
     val state by viewModel.uiState.collectAsState()
-    val shuttleTitle = state.shuttle?.name ?: "Shuttle $shuttleId"
+    val shuttleTitle = state.shuttle?.nameToDisplay ?: "Shuttle $shuttleId"
 
     Column(
         modifier = Modifier

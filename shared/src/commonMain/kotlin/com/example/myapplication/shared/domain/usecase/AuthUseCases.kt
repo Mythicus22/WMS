@@ -136,6 +136,15 @@ class ManageUsersUseCase(
             grantedSettings = grantedSettings
         )
 
+        // Ensure we don't remove USER_MANAGEMENT from the last user who has it
+        if (!updatedUser.hasFeature(FeaturePermission.USER_MANAGEMENT)) {
+            val allUsers = userRepository.getAllUsers()
+            val othersWithManagement = allUsers.filter { it.id != userId && it.hasFeature(FeaturePermission.USER_MANAGEMENT) }
+            if (othersWithManagement.isEmpty()) {
+                return Result.failure(IllegalStateException("Cannot remove User Management permission from the last admin"))
+            }
+        }
+
         val result = userRepository.updateUser(updatedUser)
         result.getOrNull()?.let { updated ->
             sessionManager.updateSessionUser(updated)

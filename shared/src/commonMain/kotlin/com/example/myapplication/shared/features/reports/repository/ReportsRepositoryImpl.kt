@@ -1,17 +1,17 @@
 package com.example.myapplication.shared.features.reports.repository
 
 import com.example.myapplication.shared.features.reports.model.*
-import com.example.myapplication.shared.features.shuttle.repository.ShuttleRepository
+import com.example.myapplication.shared.features.device.repository.DiscoveryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class ReportsRepositoryImpl(
-    private val shuttleRepo: ShuttleRepository
+    private val shuttleRepo: DiscoveryRepository
 ) : ReportsRepository {
 
     private fun getShuttlePool(shuttleId: String?): Flow<List<Pair<String, String>>> {
-        return shuttleRepo.getAllShuttles().map { shuttles ->
-            val pairs = shuttles.map { it.id to it.name }
+        return shuttleRepo.getAllDevices().map { shuttles ->
+            val pairs = shuttles.map { it.deviceId to it.nameToDisplay }
             if (shuttleId == null || shuttleId == "ALL") pairs else pairs.filter { it.first == shuttleId }
         }
     }

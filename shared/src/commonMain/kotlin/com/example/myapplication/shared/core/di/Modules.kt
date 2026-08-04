@@ -19,9 +19,10 @@ import com.example.myapplication.shared.features.operator.di.operatorModule
 import com.example.myapplication.shared.features.reports.di.reportsModule
 import com.example.myapplication.shared.features.settings.di.settingsModule
 import com.example.myapplication.shared.features.settings.viewmodel.SettingsViewModel
-import com.example.myapplication.shared.features.shuttle.di.shuttleModule
+import com.example.myapplication.shared.features.device.di.discoveryModule
 import com.example.myapplication.shared.features.usermanagement.di.userManagementModule
 import com.example.myapplication.shared.features.usermanagement.viewmodel.UserManagementViewModel
+import com.example.myapplication.shared.communication.di.communicationModule
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -48,12 +49,13 @@ val sharedModule: Module = module {
         coreModule,
         authModule,
         dashboardModule,
-        shuttleModule,
+        discoveryModule,
         operatorModule,
         diagnosticsModule,
         maintenanceModule,
         reportsModule,
         settingsModule,
-        userManagementModule
+        userManagementModule,
+        communicationModule
     )
 }

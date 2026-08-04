@@ -140,14 +140,14 @@ fun DashboardScreen(
             ) {
                 MetricCard(
                     title = "TOTAL SHUTTLES",
-                    value = currentState.totalShuttles.toString(),
+                    value = currentState.totalDiscoveredDevices.toString(),
                     icon = Icons.Default.OpenInFull,
                     iconTint = AppColors.Primary,
                     modifier = Modifier.weight(1f)
                 )
                 MetricCard(
                     title = "ONLINE",
-                    value = currentState.onlineShuttles.toString(),
+                    value = currentState.onlineDiscoveredDevices.toString(),
                     icon = Icons.Default.CheckCircle,
                     iconTint = AppColors.Success,
                     modifier = Modifier.weight(1f)
@@ -162,7 +162,7 @@ fun DashboardScreen(
             ) {
                 MetricCard(
                     title = "OFFLINE",
-                    value = currentState.offlineShuttles.toString(),
+                    value = currentState.offlineDiscoveredDevices.toString(),
                     icon = Icons.Default.MonitorHeart,
                     iconTint = MaterialTheme.colorScheme.outline,
                     modifier = Modifier.weight(1f)

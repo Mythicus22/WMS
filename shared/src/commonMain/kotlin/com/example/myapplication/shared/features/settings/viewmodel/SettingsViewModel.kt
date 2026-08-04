@@ -12,12 +12,14 @@ import com.example.myapplication.shared.features.settings.domain.RestoreDatabase
 import com.example.myapplication.shared.features.settings.domain.UpdateBackupSettingsUseCase
 import com.example.myapplication.shared.features.settings.domain.UpdateCommunicationSettingsUseCase
 import com.example.myapplication.shared.features.settings.domain.UpdateGeneralSettingsUseCase
+import com.example.myapplication.shared.communication.service.CommunicationService
 import com.example.myapplication.shared.features.settings.domain.UpdateReportSettingsUseCase
 import com.example.myapplication.shared.features.settings.model.AppSettings
 import com.example.myapplication.shared.features.settings.model.BackupSettings
 import com.example.myapplication.shared.features.settings.model.CommunicationSettings
 import com.example.myapplication.shared.features.settings.model.GeneralSettings
 import com.example.myapplication.shared.features.settings.model.ReportSettings
+import com.example.myapplication.shared.features.settings.model.ConnectionDiagnostics
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -47,7 +49,8 @@ data class SettingsUiState(
     val settings: AppSettings = AppSettings(),
     val isProcessing: Boolean = false,
     val statusMessage: String? = null,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val diagnostics: com.example.myapplication.shared.features.settings.model.ConnectionDiagnostics = com.example.myapplication.shared.features.settings.model.ConnectionDiagnostics()
 )
 
 // ---------------------------------------------------------------------------
@@ -61,6 +64,8 @@ sealed interface SettingsUiEvent {
     data class UpdateBackup(val backup: BackupSettings) : SettingsUiEvent
     data class PerformBackup(val destinationPath: String) : SettingsUiEvent
     data class PerformRestore(val backupId: String) : SettingsUiEvent
+    data class OnTestConnection(val comm: CommunicationSettings) : SettingsUiEvent
+    object OnDisconnect : SettingsUiEvent
     object DismissStatusMessage : SettingsUiEvent
     object DismissErrorMessage : SettingsUiEvent
 }
@@ -119,7 +124,8 @@ class SettingsViewModel(
     private val updateReportSettingsUseCase: UpdateReportSettingsUseCase,
     private val updateBackupSettingsUseCase: UpdateBackupSettingsUseCase,
     private val backupDatabaseUseCase: BackupDatabaseUseCase,
-    private val restoreDatabaseUseCase: RestoreDatabaseUseCase
+    private val restoreDatabaseUseCase: RestoreDatabaseUseCase,
+    private val communicationService: CommunicationService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -128,6 +134,21 @@ class SettingsViewModel(
     init {
         observeCurrentUser()
         observeSettings()
+        observeDiagnostics()
+    }
+
+    private fun observeDiagnostics() {
+        kotlinx.coroutines.flow.combine<com.example.myapplication.shared.communication.service.ConnectionState, List<String>, ConnectionDiagnostics>(
+            communicationService.connectionState,
+            communicationService.diagnosticsLog
+        ) { state, logs ->
+            ConnectionDiagnostics(
+                connectionState = state.name,
+                logs = logs
+            )
+        }.onEach { diag ->
+            _uiState.update { it.copy(diagnostics = diag) }
+        }.launchIn(viewModelScope)
     }
 
     private fun observeCurrentUser() {
@@ -225,6 +246,24 @@ class SettingsViewModel(
                         is Result.Error -> _uiState.update { curr -> curr.copy(isProcessing = false, errorMessage = "Restore failed: ${res.exception.message}") }
                         is Result.Loading -> {}
                     }
+                }
+            }
+
+            is SettingsUiEvent.OnTestConnection -> {
+                viewModelScope.launch {
+                    communicationService.connect(
+                        brokerAddress = event.comm.mqttBrokerAddress,
+                        port = event.comm.mqttPort,
+                        clientId = event.comm.clientId,
+                        username = event.comm.username,
+                        password = event.comm.password
+                    )
+                }
+            }
+
+            is SettingsUiEvent.OnDisconnect -> {
+                viewModelScope.launch {
+                    communicationService.disconnect()
                 }
             }
 
