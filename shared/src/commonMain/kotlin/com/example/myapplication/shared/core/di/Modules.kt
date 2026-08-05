@@ -32,14 +32,15 @@ val coreModule = module {
     single<IUserRepository> { UserRepositoryImpl(get()) }
 
     // UseCases
-    factory { LoginUseCase(get(), get()) }
+    factory { LoginUseCase(get(), get(), get(), get()) }
     factory { LogoutUseCase(get()) }
     factory { GetCurrentUserUseCase(get()) }
-    factory { ManageUsersUseCase(get(), get()) }
+    factory { ManageUsersUseCase(get(), get(), get()) }
 
     // ViewModels
     factory { AuthViewModel(get()) }
-    factory { DashboardViewModel(get(), get(), get()) }
+    factory { com.example.myapplication.shared.features.auth.viewmodel.SetupViewModel(get(), get()) }
+    factory { DashboardViewModel(get(), get(), get(), get(), get()) }
     factory { UserManagementViewModel(get()) }
 }
 

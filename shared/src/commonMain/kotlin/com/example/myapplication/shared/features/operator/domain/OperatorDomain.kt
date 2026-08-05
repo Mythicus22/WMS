@@ -6,16 +6,24 @@ import com.example.myapplication.shared.features.operator.model.ShuttleFault
 import com.example.myapplication.shared.features.operator.model.ShuttleLiveStatus
 import com.example.myapplication.shared.features.operator.repository.CommandRepository
 import com.example.myapplication.shared.features.device.model.DiscoveredDevice
-import com.example.myapplication.shared.features.device.repository.DiscoveryRepository
+import com.example.myapplication.shared.features.device.repository.RegisteredShuttleRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
+import com.example.myapplication.shared.communication.service.CommunicationService
+import kotlinx.coroutines.flow.combine
+
 class GetEnabledDiscoveredDevicesUseCase(
-    private val discoveryRepository: DiscoveryRepository
+    private val registeredShuttleRepository: RegisteredShuttleRepository,
+    private val communicationService: CommunicationService
 ) {
     operator fun invoke(): Flow<List<DiscoveredDevice>> {
-        return discoveryRepository.getAllDevices().map { list ->
-            list.filter { it.status == "ONLINE" }
+        return combine(
+            registeredShuttleRepository.getAllRegisteredShuttles(),
+            communicationService.activeDevice
+        ) { list, activeId ->
+            if (activeId == null) emptyList()
+            else list.filter { it.deviceId == activeId }
         }
     }
 }

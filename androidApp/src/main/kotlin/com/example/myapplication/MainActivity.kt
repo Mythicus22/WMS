@@ -12,6 +12,10 @@ import org.koin.dsl.module
 import com.example.myapplication.shared.core.di.sharedModule
 import com.example.myapplication.shared.data.local.database.DriverFactory
 import com.example.myapplication.shared.core.logging.Logger
+import com.example.myapplication.shared.core.security.SecurityProvider
+import com.example.myapplication.shared.core.security.SecurityProviderImpl
+import com.example.myapplication.shared.core.security.ConfigProvider
+import com.example.myapplication.shared.core.security.ConfigProviderImpl
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,6 +30,8 @@ class MainActivity : ComponentActivity() {
             androidContext(this@MainActivity)
             modules(sharedModule, module {
                 single { DriverFactory(androidContext()) }
+                single<SecurityProvider> { SecurityProviderImpl() }
+                single<ConfigProvider> { ConfigProviderImpl(androidContext()) }
             })
         }
 

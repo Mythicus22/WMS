@@ -203,6 +203,7 @@ class SettingsViewModel(
                 }
                 viewModelScope.launch {
                     updateCommunicationSettingsUseCase(event.communication)
+                    communicationService.connect(event.communication)
                     _uiState.update { curr -> curr.copy(statusMessage = "Communication settings saved.") }
                 }
             }
@@ -251,13 +252,7 @@ class SettingsViewModel(
 
             is SettingsUiEvent.OnTestConnection -> {
                 viewModelScope.launch {
-                    communicationService.connect(
-                        brokerAddress = event.comm.mqttBrokerAddress,
-                        port = event.comm.mqttPort,
-                        clientId = event.comm.clientId,
-                        username = event.comm.username,
-                        password = event.comm.password
-                    )
+                    communicationService.connect(event.comm)
                 }
             }
 

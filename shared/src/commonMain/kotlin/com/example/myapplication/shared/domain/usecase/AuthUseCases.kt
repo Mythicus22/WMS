@@ -1,6 +1,7 @@
 package com.example.myapplication.shared.domain.usecase
 
-import com.example.myapplication.shared.core.security.PasswordHasher
+import com.example.myapplication.shared.core.security.ConfigProvider
+import com.example.myapplication.shared.core.security.SecurityProvider
 import com.example.myapplication.shared.core.session.SessionManager
 import com.example.myapplication.shared.domain.model.FeaturePermission
 import com.example.myapplication.shared.domain.model.SettingPermission
@@ -14,7 +15,9 @@ import kotlinx.coroutines.flow.Flow
  */
 class LoginUseCase(
     private val userRepository: IUserRepository,
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val configProvider: ConfigProvider,
+    private val securityProvider: SecurityProvider
 ) {
     suspend operator fun invoke(usernameInput: String, passwordInput: String): Result<User> {
         val username = usernameInput.trim()
@@ -27,12 +30,31 @@ class LoginUseCase(
             return Result.failure(IllegalArgumentException("Password cannot be empty"))
         }
 
-        userRepository.seedDefaultAdminIfNeeded()
+        val config = configProvider.readConfig()
+        if (config != null && config.first == username) {
+            val isPasswordCorrect = securityProvider.verifyPassword(password, config.second)
+            if (isPasswordCorrect) {
+                val adminUser = User(
+                    id = "master_admin",
+                    username = config.first,
+                    passwordHash = config.second,
+                    role = UserRole.ADMIN,
+                    grantedFeatures = FeaturePermission.entries.toSet(),
+                    grantedSettings = SettingPermission.entries.toSet(),
+                    createdAt = 0L
+                )
+                sessionManager.saveSession(adminUser)
+                return Result.success(adminUser)
+            } else {
+                return Result.failure(IllegalArgumentException("Invalid username or password"))
+            }
+        }
 
+        // Fallback to database users if any
         val user = userRepository.getUserByUsername(username)
             ?: return Result.failure(IllegalArgumentException("Invalid username or password"))
 
-        val isPasswordCorrect = PasswordHasher.verifyPassword(password, user.passwordHash)
+        val isPasswordCorrect = securityProvider.verifyPassword(password, user.passwordHash)
         if (!isPasswordCorrect) {
             return Result.failure(IllegalArgumentException("Invalid username or password"))
         }
@@ -75,7 +97,8 @@ class GetCurrentUserUseCase(
  */
 class ManageUsersUseCase(
     private val userRepository: IUserRepository,
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val securityProvider: SecurityProvider
 ) {
     fun getAllUsersFlow(): Flow<List<User>> = userRepository.getAllUsersFlow()
 
@@ -94,7 +117,7 @@ class ManageUsersUseCase(
         }
 
         val id = "user_" + System.currentTimeMillis()
-        val passwordHash = PasswordHasher.hashPassword(passwordRaw)
+        val passwordHash = securityProvider.hashPassword(passwordRaw)
         val newUser = User(
             id = id,
             username = username,
@@ -124,7 +147,7 @@ class ManageUsersUseCase(
             ?: return Result.failure(IllegalArgumentException("User not found"))
 
         val newPasswordHash = if (!newPasswordRaw.isNullOrBlank()) {
-            PasswordHasher.hashPassword(newPasswordRaw)
+            securityProvider.hashPassword(newPasswordRaw)
         } else {
             existingUser.passwordHash
         }

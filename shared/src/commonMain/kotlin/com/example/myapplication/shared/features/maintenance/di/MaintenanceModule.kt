@@ -9,7 +9,6 @@ import com.example.myapplication.shared.features.maintenance.repository.Maintena
 import com.example.myapplication.shared.features.maintenance.repository.MaintenanceRepositoryImpl
 import com.example.myapplication.shared.features.maintenance.viewmodel.MaintenanceConsoleViewModel
 import com.example.myapplication.shared.features.maintenance.viewmodel.MaintenanceTestDetailViewModel
-import com.example.myapplication.shared.features.maintenance.viewmodel.MaintenanceViewModel
 import org.koin.dsl.module
 
 val maintenanceModule = module {
@@ -21,7 +20,6 @@ val maintenanceModule = module {
     factory { RunMaintenanceTestUseCase(get()) }
     factory { ResetMaintenanceTestUseCase(get()) }
 
-    factory { MaintenanceViewModel(get()) }
     factory { MaintenanceConsoleViewModel(get(), get()) }
-    factory { MaintenanceTestDetailViewModel(get(), get(), get(), get()) }
+    factory { MaintenanceTestDetailViewModel(get(), get(), get(), get(), get()) }
 }

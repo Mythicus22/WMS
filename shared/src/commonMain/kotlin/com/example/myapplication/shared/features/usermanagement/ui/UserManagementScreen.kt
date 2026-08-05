@@ -85,16 +85,7 @@ fun UserManagementScreen(
         // App Header Toolbar
         AppToolbar(
             title = "User Directory & RBAC",
-            onNavigationClick = { navigator.goBack() },
-            actions = {
-                IconButton(onClick = { viewModel.onEvent(UserManagementUiEvent.OnAddUserClicked) }) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add User",
-                        tint = Color.White
-                    )
-                }
-            }
+            onNavigationClick = { navigator.goBack() }
         )
 
         Column(
@@ -193,7 +184,8 @@ fun UserManagementScreen(
                         newPasswordRaw = password.ifBlank { null }
                     )
                 )
-            }
+            },
+            onDelete = { viewModel.onEvent(UserManagementUiEvent.OnDeleteUserClicked(user)) }
         )
     }
 
@@ -316,15 +308,6 @@ private fun UserListItemCard(
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }
-                    if (!user.isAdmin) {
-                        IconButton(onClick = onDelete) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Delete User",
-                                tint = AppColors.Error
-                            )
-                        }
-                    }
                 }
             }
 
@@ -377,7 +360,8 @@ private fun UserEditorDialog(
         role: UserRole,
         grantedFeatures: Set<FeaturePermission>,
         grantedSettings: Set<SettingPermission>
-    ) -> Unit
+    ) -> Unit,
+    onDelete: (() -> Unit)? = null
 ) {
     val isEditMode = userToEdit != null
 
@@ -679,12 +663,22 @@ private fun UserEditorDialog(
                 },
                 enabled = isEditMode || (username.isNotBlank() && password.isNotBlank())
             ) {
-                Text(if (isEditMode) "Update Permissions" else "Save User")
+                Text(if (isEditMode) "Update Permissions" else "Add User")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (isEditMode && userToEdit?.username?.lowercase() != "admin") {
+                    TextButton(onClick = { 
+                        onDismiss()
+                        onDelete?.invoke() 
+                    }) {
+                        Text("Delete User", color = AppColors.Error)
+                    }
+                }
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel")
+                }
             }
         }
     )

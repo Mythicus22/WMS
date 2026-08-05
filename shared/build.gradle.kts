@@ -42,6 +42,8 @@ kotlin {
             implementation(libs.compose.uiTooling)
             implementation(libs.sqldelight.android.driver)
             implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
+            implementation(libs.bouncycastle)
+            implementation(libs.androidx.security.crypto)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -60,6 +62,14 @@ kotlin {
             implementation(libs.androidx.datastore.preferences)
             implementation(libs.sqldelight.coroutines.extensions)
             implementation(libs.kotlinx.datetime)
+            
+            // Ktor Networking
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.cio)
+            implementation(libs.ktor.client.websockets)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.ktor.network)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -67,6 +77,7 @@ kotlin {
         jvmMain.dependencies {
             implementation(libs.sqldelight.sqlite.driver)
             implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
+            implementation(libs.bouncycastle)
         }
     }
 

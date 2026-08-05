@@ -519,71 +519,167 @@ private fun CommunicationSettingsView(
     LaunchedEffect(isEditing) { if (!isEditing) draft = comm }
 
     var portError by remember { mutableStateOf<String?>(null) }
+    var directWsPortError by remember { mutableStateOf<String?>(null) }
     var keepAliveError by remember { mutableStateOf<String?>(null) }
     var heartbeatError by remember { mutableStateOf<String?>(null) }
     var timeoutError by remember { mutableStateOf<String?>(null) }
     
+    // For Direct Mode IP input
+    var newIpInput by remember { mutableStateOf("") }
+    var ipError by remember { mutableStateOf<String?>(null) }
+    val ipRegex = "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$".toRegex()
+    
     var passwordVisible by remember { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        SectionHeader("MQTT BROKER CONFIGURATION")
+        SectionHeader("COMMUNICATION MODE")
         SettingsCard {
             if (isEditing) {
-                OutlinedTextField(value = draft.mqttBrokerAddress, onValueChange = { draft = draft.copy(mqttBrokerAddress = it) }, label = { Text("Broker IP / Hostname") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                OutlinedTextField(
-                    value = draft.mqttPort.toString(),
-                    onValueChange = { v ->
-                        val n = v.toIntOrNull()
-                        portError = if (n == null || n !in 1..65535) "Port must be 1–65535" else null
-                        draft = draft.copy(mqttPort = n ?: draft.mqttPort)
-                    },
-                    label = { Text("MQTT Port") },
-                    modifier = Modifier.fillMaxWidth(),
-                    isError = portError != null,
-                    supportingText = portError?.let { { Text(it, color = AppColors.Error) } },
-                    singleLine = true
-                )
-                OutlinedTextField(value = draft.clientId, onValueChange = { draft = draft.copy(clientId = it.trim()) }, label = { Text("Client Identifier") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                OutlinedTextField(value = draft.username, onValueChange = { draft = draft.copy(username = it.trim()) }, label = { Text("Username") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                OutlinedTextField(
-                    value = draft.password,
-                    onValueChange = { draft = draft.copy(password = it) },
-                    label = { Text("Password") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    visualTransformation = if (passwordVisible) androidx.compose.ui.text.input.VisualTransformation.None else androidx.compose.ui.text.input.PasswordVisualTransformation(),
-                    trailingIcon = {
-                        val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(imageVector = image, contentDescription = if (passwordVisible) "Hide password" else "Show password")
+                SettingsDropdown(
+                    label = "Operation Mode",
+                    selected = draft.mode,
+                    options = CommunicationMode.entries,
+                    displayName = { it.displayName },
+                    enabled = true
+                ) { draft = draft.copy(mode = it) }
+            } else {
+                ViewRow("Current Mode", comm.mode.displayName, Icons.Default.NetworkWifi)
+            }
+        }
+
+        if (draft.mode == CommunicationMode.MQTT_BROKER) {
+            SectionHeader("MQTT BROKER CONFIGURATION")
+            SettingsCard {
+                if (isEditing) {
+                    OutlinedTextField(value = draft.mqttBrokerAddress, onValueChange = { draft = draft.copy(mqttBrokerAddress = it) }, label = { Text("Broker IP / Hostname") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                    OutlinedTextField(
+                        value = draft.mqttPort.toString(),
+                        onValueChange = { v ->
+                            val n = v.toIntOrNull()
+                            portError = if (n == null || n !in 1..65535) "Port must be 1–65535" else null
+                            draft = draft.copy(mqttPort = n ?: draft.mqttPort)
+                        },
+                        label = { Text("MQTT Port") },
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = portError != null,
+                        supportingText = portError?.let { { Text(it, color = AppColors.Error) } },
+                        singleLine = true
+                    )
+                    OutlinedTextField(value = draft.clientId, onValueChange = { draft = draft.copy(clientId = it.trim()) }, label = { Text("Client Identifier") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                    OutlinedTextField(value = draft.username, onValueChange = { draft = draft.copy(username = it.trim()) }, label = { Text("Username") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                    OutlinedTextField(
+                        value = draft.password,
+                        onValueChange = { draft = draft.copy(password = it) },
+                        label = { Text("Password") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        visualTransformation = if (passwordVisible) androidx.compose.ui.text.input.VisualTransformation.None else androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                        trailingIcon = {
+                            val image = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(imageVector = image, contentDescription = if (passwordVisible) "Hide password" else "Show password")
+                            }
+                        }
+                    )
+                } else {
+                    ViewRow("Broker Address", comm.mqttBrokerAddress, Icons.Default.Wifi)
+                    Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                    ViewRow("MQTT Port", comm.mqttPort.toString())
+                    Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                    ViewRow("Client ID", comm.clientId)
+                    Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                    ViewRow("Username", if (comm.username.isNotBlank()) comm.username else "(Not Set)")
+                }
+            }
+        } else {
+            SectionHeader("DIRECT MODE CONFIGURATION")
+            SettingsCard {
+                if (isEditing) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Allowed Shuttle IP Addresses", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        
+                        draft.allowedShuttleIps.forEach { ip ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), RoundedCornerShape(8.dp)).padding(horizontal = 12.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(ip, style = MaterialTheme.typography.bodyMedium)
+                                IconButton(onClick = { draft = draft.copy(allowedShuttleIps = draft.allowedShuttleIps - ip) }, modifier = Modifier.size(24.dp)) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Remove IP", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
+                                }
+                            }
+                        }
+                        
+                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            OutlinedTextField(
+                                value = newIpInput,
+                                onValueChange = { 
+                                    newIpInput = it
+                                    ipError = if (it.isNotBlank() && !it.matches(ipRegex)) "Invalid IP Format" else null
+                                },
+                                label = { Text("Add IP Address") },
+                                modifier = Modifier.weight(1f),
+                                singleLine = true,
+                                isError = ipError != null,
+                                supportingText = ipError?.let { { Text(it, color = AppColors.Error) } }
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Button(
+                                onClick = {
+                                    if (newIpInput.matches(ipRegex) && !draft.allowedShuttleIps.contains(newIpInput)) {
+                                        draft = draft.copy(allowedShuttleIps = draft.allowedShuttleIps + newIpInput)
+                                        newIpInput = ""
+                                        ipError = null
+                                    }
+                                },
+                                enabled = newIpInput.isNotBlank() && ipError == null,
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text("Add")
+                            }
                         }
                     }
-                )
-            } else {
-                ViewRow("Broker Address", comm.mqttBrokerAddress, Icons.Default.Wifi)
-                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-                ViewRow("MQTT Port", comm.mqttPort.toString())
-                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-                ViewRow("Client ID", comm.clientId)
-                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-                ViewRow("Username", if (comm.username.isNotBlank()) comm.username else "(Not Set)")
-            }
-            
-            // Connection Controls
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedButton(
-                    onClick = { onDisconnect() },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text("Disconnect")
+
+                    OutlinedTextField(
+                        value = draft.directWebSocketPort.toString(),
+                        onValueChange = { v ->
+                            val n = v.toIntOrNull()
+                            directWsPortError = if (n == null || n !in 1..65535) "Port must be 1–65535" else null
+                            draft = draft.copy(directWebSocketPort = n ?: draft.directWebSocketPort)
+                        },
+                        label = { Text("WebSocket Port") },
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = directWsPortError != null,
+                        supportingText = directWsPortError?.let { { Text(it, color = AppColors.Error) } },
+                        singleLine = true
+                    )
+                } else {
+                    ViewRow("Allowed IPs", if (comm.allowedShuttleIps.isEmpty()) "None configured" else "${comm.allowedShuttleIps.size} IPs configured", Icons.Default.NetworkPing)
+                    Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                    ViewRow("WebSocket Port", comm.directWebSocketPort.toString())
                 }
-                Button(
-                    onClick = { onTestConnection(if (isEditing) draft else comm) },
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text("Test Connection")
+            }
+        }
+
+        if (draft.mode == CommunicationMode.MQTT_BROKER) {
+            SettingsCard {
+                // Connection Controls
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedButton(
+                        onClick = { onDisconnect() },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("Disconnect")
+                    }
+                    Button(
+                        onClick = { onTestConnection(if (isEditing) draft else comm) },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("Test Connection")
+                    }
                 }
             }
         }
@@ -642,44 +738,45 @@ private fun CommunicationSettingsView(
             }
         }
 
-        SectionHeader("COMMUNICATION DIAGNOSTICS")
-        SettingsCard {
-            ViewRow("Connection State", diagnostics.connectionState)
-            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-            ViewRow("Last Error", diagnostics.lastError)
-            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-            ViewRow("Reconnect Count", diagnostics.reconnectCount.toString())
-            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-            ViewRow("MQTT Library", diagnostics.libraryVersion)
-            
-            Spacer(Modifier.height(8.dp))
-            Text("Live Connection Log", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), RoundedCornerShape(8.dp))
-                    .padding(8.dp)
-            ) {
-                // Using LazyColumn would be better, but simpler column for scrolling
-                Column(
-                    modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+        if (draft.mode == CommunicationMode.MQTT_BROKER) {
+            SectionHeader("COMMUNICATION DIAGNOSTICS")
+            SettingsCard {
+                ViewRow("Connection State", diagnostics.connectionState)
+                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                ViewRow("Last Error", diagnostics.lastError)
+                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                ViewRow("Reconnect Count", diagnostics.reconnectCount.toString())
+                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                ViewRow("MQTT Library", diagnostics.libraryVersion)
+                
+                Spacer(Modifier.height(8.dp))
+                Text("Live Connection Log", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f), RoundedCornerShape(8.dp))
+                        .padding(8.dp)
                 ) {
-                    diagnostics.logs.forEach { logLine ->
-                        Text(
-                            text = logLine,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                        )
+                    Column(
+                        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        diagnostics.logs.forEach { logLine ->
+                            Text(
+                                text = logLine,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                            )
+                        }
                     }
                 }
             }
         }
 
         if (isEditing) {
-            val hasError = portError != null || keepAliveError != null || heartbeatError != null || timeoutError != null
+            val hasError = portError != null || keepAliveError != null || heartbeatError != null || timeoutError != null || directWsPortError != null
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
                 OutlinedButton(onClick = onCancel, shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(48.dp)) {
                     Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Cancel")

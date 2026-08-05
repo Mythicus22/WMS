@@ -8,6 +8,7 @@ import com.example.myapplication.shared.domain.model.User
 import com.example.myapplication.shared.domain.usecase.GetCurrentUserUseCase
 import com.example.myapplication.shared.domain.usecase.LogoutUseCase
 import com.example.myapplication.shared.presentation.viewmodel.BaseViewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -17,7 +18,8 @@ data class DashboardUiState(
     val availableFeatures: List<FeaturePermission> = emptyList(),
     val totalDiscoveredDevices: Long = 0,
     val onlineDiscoveredDevices: Long = 0,
-    val offlineDiscoveredDevices: Long = 0
+    val offlineDiscoveredDevices: Long = 0,
+    val activeDeviceId: String? = null
 )
 
 sealed interface DashboardUiEvent : UiEvent {
@@ -31,17 +33,42 @@ sealed interface DashboardUiEffect : UiEffect {
 class DashboardViewModel(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val logoutUseCase: LogoutUseCase,
-    private val discoveryRepository: com.example.myapplication.shared.features.device.repository.DiscoveryRepository
+    private val registeredShuttleRepository: com.example.myapplication.shared.features.device.repository.RegisteredShuttleRepository,
+    private val communicationService: com.example.myapplication.shared.communication.service.CommunicationService,
+    private val getSettingsUseCase: com.example.myapplication.shared.features.settings.domain.GetSettingsUseCase
 ) : BaseViewModel<DashboardUiState, DashboardUiEvent, DashboardUiEffect>() {
 
     init {
         setState(DashboardUiState())
         observeCurrentUser()
         observeDeviceCounts()
+        observeActiveDevice()
+        autoConnect()
+    }
+
+    private fun autoConnect() {
+        viewModelScope.launch {
+            try {
+                // If it is already CONNECTED or CONNECTING, no need to connect
+                if (communicationService.connectionState.value == com.example.myapplication.shared.communication.service.ConnectionState.DISCONNECTED) {
+                    val settings = getSettingsUseCase().first()
+                    communicationService.connect(settings.communication)
+                }
+            } catch (e: Exception) {
+                io.github.aakira.napier.Napier.e("Failed to auto-connect on startup: ${e.message}")
+            }
+        }
+    }
+
+    private fun observeActiveDevice() {
+        communicationService.activeDevice.onEach { deviceId ->
+            val currentState = uiState.value ?: DashboardUiState()
+            setState(currentState.copy(activeDeviceId = deviceId))
+        }.launchIn(viewModelScope)
     }
 
     private fun observeDeviceCounts() {
-        discoveryRepository.getDeviceCounts().onEach { counts ->
+        registeredShuttleRepository.getRegisteredShuttleCounts().onEach { counts ->
             val currentState = uiState.value ?: DashboardUiState()
             setState(currentState.copy(
                 totalDiscoveredDevices = counts.total,

@@ -50,15 +50,11 @@ import com.example.myapplication.shared.presentation.theme.AppDimensions
 @Composable
 fun MaintenanceConsoleScreen(
     navigator: Navigator,
-    viewModel: MaintenanceConsoleViewModel,
-    shuttleId: String
+    viewModel: MaintenanceConsoleViewModel
 ) {
-    LaunchedEffect(shuttleId) {
-        viewModel.loadShuttle(shuttleId)
-    }
 
     val state by viewModel.uiState.collectAsState()
-    val shuttleTitle = state.shuttle?.nameToDisplay ?: "Device $shuttleId"
+    val shuttleTitle = state.shuttle?.nameToDisplay ?: "Active Shuttle"
 
     Column(
         modifier = Modifier
@@ -75,6 +71,12 @@ fun MaintenanceConsoleScreen(
                 .fillMaxSize()
                 .padding(AppDimensions.spacing16)
         ) {
+            if (state.isMockData) {
+                Row(modifier = Modifier.fillMaxWidth().background(com.example.myapplication.shared.presentation.theme.AppColors.Warning.copy(alpha = 0.2f)).padding(8.dp), horizontalArrangement = Arrangement.Center) {
+                    Text("No Active Shuttle - Showing Mock Data", color = com.example.myapplication.shared.presentation.theme.AppColors.Warning, fontWeight = FontWeight.Bold)
+                }
+                Spacer(modifier = Modifier.height(AppDimensions.spacing12))
+            }
             Text(
                 text = "HARDWARE & SENSOR DIAGNOSTIC TEST SUITE (14 TESTS)",
                 style = MaterialTheme.typography.labelMedium,
@@ -98,7 +100,7 @@ fun MaintenanceConsoleScreen(
                             MaintenanceTestCard(
                                 test = test,
                                 onClick = {
-                                    navigator.navigateTo(Screen.MaintenanceTestDetail(shuttleId, test.id))
+                                    navigator.navigateTo(Screen.MaintenanceTestDetail(test.id))
                                 },
                                 modifier = Modifier.weight(1f)
                             )

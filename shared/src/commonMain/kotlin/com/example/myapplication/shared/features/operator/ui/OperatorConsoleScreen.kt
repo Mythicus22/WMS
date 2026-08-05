@@ -70,15 +70,10 @@ import com.example.myapplication.shared.presentation.theme.AppDimensions
 @Composable
 fun OperatorConsoleScreen(
     navigator: Navigator,
-    viewModel: OperatorConsoleViewModel,
-    shuttleId: String
+    viewModel: OperatorConsoleViewModel
 ) {
-    LaunchedEffect(shuttleId) {
-        viewModel.initialize(shuttleId)
-    }
-
     val state by viewModel.uiState.collectAsState()
-    val shuttleTitle = state.shuttle?.nameToDisplay ?: "Shuttle $shuttleId"
+    val shuttleTitle = state.shuttle?.nameToDisplay ?: "Active Shuttle"
 
     Column(
         modifier = Modifier
@@ -96,6 +91,12 @@ fun OperatorConsoleScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(AppDimensions.spacing16)
         ) {
+            if (state.isMockData) {
+                Row(modifier = Modifier.fillMaxWidth().background(com.example.myapplication.shared.presentation.theme.AppColors.Warning.copy(alpha = 0.2f)).padding(8.dp), horizontalArrangement = Arrangement.Center) {
+                    Text("No Active Shuttle - Showing Mock Data", color = com.example.myapplication.shared.presentation.theme.AppColors.Warning, fontWeight = FontWeight.Bold)
+                }
+                Spacer(modifier = Modifier.height(AppDimensions.spacing12))
+            }
             // Command Feedback Banner
             state.commandFeedback?.let { msg ->
                 Row(

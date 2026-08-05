@@ -29,16 +29,14 @@ import com.example.myapplication.shared.presentation.theme.AppDimensions
 @Composable
 fun DiagnosticsDashboardScreen(
     navigator: Navigator,
-    viewModel: DiagnosticsDashboardViewModel,
-    shuttleId: String,
-    shuttleName: String
+    viewModel: DiagnosticsDashboardViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
             AppToolbar(
-                title = "Diagnostics: $shuttleName",
+                title = "Diagnostics: ${uiState.shuttleName}",
                 onNavigationClick = { navigator.goBack() },
                 actions = {
                     IconButton(onClick = { /* Export */ }) {
@@ -54,15 +52,21 @@ fun DiagnosticsDashboardScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
         ) {
-            if (uiState.isLoading || uiState.data == null) {
+            if (uiState.isLoading) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             } else {
-                val data = uiState.data!!
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = AppDimensions.spacing16),
-                    contentPadding = PaddingValues(vertical = AppDimensions.spacing16),
+                val data = uiState.data ?: return@Box
+                Column {
+                    if (uiState.isMockData) {
+                        Row(modifier = Modifier.fillMaxWidth().background(AppColors.Warning.copy(alpha = 0.2f)).padding(8.dp), horizontalArrangement = Arrangement.Center) {
+                            Text("No Active Shuttle - Showing Mock Data", color = AppColors.Warning, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize().padding(horizontal = AppDimensions.spacing16),
+                        contentPadding = PaddingValues(vertical = AppDimensions.spacing16),
                     verticalArrangement = Arrangement.spacedBy(AppDimensions.spacing16)
                 ) {
                     // Filter & Search
@@ -197,8 +201,9 @@ fun DiagnosticsDashboardScreen(
                     }
                 }
             }
-        }
     }
+}
+}
 }
 
 // ---------------------------------------------------------------------------

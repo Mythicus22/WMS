@@ -10,7 +10,7 @@ import com.example.myapplication.shared.features.operator.model.ShuttleCommandTy
 import com.example.myapplication.shared.features.operator.model.ShuttleFault
 import com.example.myapplication.shared.features.operator.model.ShuttleLiveStatus
 import com.example.myapplication.shared.features.device.model.DiscoveredDevice
-import com.example.myapplication.shared.features.device.repository.DiscoveryRepository
+import com.example.myapplication.shared.features.device.repository.RegisteredShuttleRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,9 +21,10 @@ data class OperatorConsoleUiState(
     val shuttleId: String = "",
     val shuttle: DiscoveredDevice? = null,
     val liveStatus: ShuttleLiveStatus = ShuttleLiveStatus(shuttleId = ""),
-    val activeFaults: List<ShuttleFault> = emptyList(),
     val isCommandExecuting: Boolean = false,
-    val commandFeedback: String? = null
+    val commandFeedback: String? = null,
+    val isMockData: Boolean = false,
+    val activeFaults: List<ShuttleFault> = emptyList()
 )
 
 sealed class OperatorConsoleEvent {
@@ -33,7 +34,7 @@ sealed class OperatorConsoleEvent {
 }
 
 class OperatorConsoleViewModel(
-    private val discoveryRepository: DiscoveryRepository,
+    private val communicationService: com.example.myapplication.shared.communication.service.CommunicationService,
     private val getDiscoveredDeviceLiveStatusUseCase: GetDiscoveredDeviceLiveStatusUseCase,
     private val getDiscoveredDeviceFaultsUseCase: GetDiscoveredDeviceFaultsUseCase,
     private val sendDiscoveredDeviceCommandUseCase: SendDiscoveredDeviceCommandUseCase
@@ -42,29 +43,59 @@ class OperatorConsoleViewModel(
     private val _uiState = MutableStateFlow(OperatorConsoleUiState())
     val uiState: StateFlow<OperatorConsoleUiState> = _uiState.asStateFlow()
 
-    fun initialize(shuttleId: String) {
-        _uiState.update { it.copy(shuttleId = shuttleId) }
-
-        // Fetch shuttle DB info
+    init {
         viewModelScope.launch {
-            val shuttleObj = discoveryRepository.getDeviceById(shuttleId)
-            _uiState.update { it.copy(shuttle = shuttleObj) }
+            communicationService.activeDevice.collect { deviceId ->
+                if (deviceId != null) {
+                    _uiState.update { it.copy(shuttleId = deviceId, isMockData = false) }
+                    observeDevice(deviceId)
+                } else {
+                    // Fallback Mock Data
+                    _uiState.update { 
+                        it.copy(
+                            shuttleId = "MOCK-001",
+                            isMockData = true,
+                            liveStatus = ShuttleLiveStatus(
+                                shuttleId = "MOCK-001",
+                                isOnline = true,
+                                currentState = "IDLE",
+                                batteryPercent = 85,
+                                speed = "0.0 m/s",
+                                direction = "NONE",
+                                isEmergencyStopActive = false,
+                                rackPosition = "Aisle 02 / Bay 14 / Tier 03",
+                                liftPosition = "DOWN",
+                                commStatus = "ONLINE",
+                                currentMission = "NONE"
+                            ),
+                            activeFaults = emptyList()
+                        )
+                    }
+                }
+            }
         }
+    }
 
-        // Observe Live Status telemetry
-        viewModelScope.launch {
+    private var deviceJobs = mutableListOf<kotlinx.coroutines.Job>()
+
+    private fun observeDevice(shuttleId: String) {
+        deviceJobs.forEach { it.cancel() }
+        deviceJobs.clear()
+
+        val statusJob = viewModelScope.launch {
             getDiscoveredDeviceLiveStatusUseCase(shuttleId).collect { status ->
                 _uiState.update { it.copy(liveStatus = status) }
             }
         }
-
-        // Observe Active Faults
-        viewModelScope.launch {
+        val faultsJob = viewModelScope.launch {
             getDiscoveredDeviceFaultsUseCase(shuttleId).collect { faults ->
                 _uiState.update { it.copy(activeFaults = faults) }
             }
         }
+        deviceJobs.add(statusJob)
+        deviceJobs.add(faultsJob)
     }
+
 
     fun onEvent(event: OperatorConsoleEvent) {
         when (event) {

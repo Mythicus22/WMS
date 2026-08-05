@@ -64,6 +64,8 @@ fun DashboardScreen(
     val state by viewModel.uiState.collectAsState()
     val currentState = state ?: com.example.myapplication.shared.features.dashboard.viewmodel.DashboardUiState()
 
+    val showNoShuttleDialog = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+
     LaunchedEffect(viewModel) {
         viewModel.uiEffect.collect { effect ->
             when (effect) {
@@ -239,9 +241,18 @@ fun DashboardScreen(
                                 feature = feature,
                                 onClick = {
                                     when (feature) {
-                                        FeaturePermission.OPERATOR -> navigator.navigateTo(Screen.Operator)
-                                        FeaturePermission.DIAGNOSTICS -> navigator.navigateTo(Screen.DiagnosticsShuttleSelect)
-                                        FeaturePermission.MAINTENANCE -> navigator.navigateTo(Screen.Maintenance)
+                                        FeaturePermission.OPERATOR -> {
+                                            if (currentState.activeDeviceId != null) navigator.navigateTo(Screen.OperatorConsole)
+                                            else showNoShuttleDialog.value = true
+                                        }
+                                        FeaturePermission.DIAGNOSTICS -> {
+                                            if (currentState.activeDeviceId != null) navigator.navigateTo(Screen.DiagnosticsDashboard)
+                                            else showNoShuttleDialog.value = true
+                                        }
+                                        FeaturePermission.MAINTENANCE -> {
+                                            if (currentState.activeDeviceId != null) navigator.navigateTo(Screen.MaintenanceConsole)
+                                            else showNoShuttleDialog.value = true
+                                        }
                                         FeaturePermission.REPORTS -> navigator.navigateTo(Screen.ReportsShuttleSelect)
                                         FeaturePermission.SETTINGS -> navigator.navigateTo(Screen.Settings)
                                         FeaturePermission.USER_MANAGEMENT -> navigator.navigateTo(Screen.UserManagement)
@@ -259,6 +270,19 @@ fun DashboardScreen(
                 }
             }
         }
+    }
+
+    if (showNoShuttleDialog.value) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showNoShuttleDialog.value = false },
+            title = { androidx.compose.material3.Text("No Active Shuttle") },
+            text = { androidx.compose.material3.Text("You are not connected to any active shuttle. Please select a shuttle in Shuttle Management first.") },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = { showNoShuttleDialog.value = false }) {
+                    androidx.compose.material3.Text("OK")
+                }
+            }
+        )
     }
 }
 

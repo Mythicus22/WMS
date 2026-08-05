@@ -17,23 +17,18 @@ import com.example.myapplication.shared.features.auth.ui.splash.SplashScreen
 import com.example.myapplication.shared.features.auth.viewmodel.AuthViewModel
 import com.example.myapplication.shared.features.dashboard.ui.DashboardScreen
 import com.example.myapplication.shared.features.dashboard.viewmodel.DashboardViewModel
-import com.example.myapplication.shared.features.diagnostics.ui.DiagnosticsScreen
 import com.example.myapplication.shared.features.diagnostics.ui.DiagnosticsDashboardScreen
 import com.example.myapplication.shared.features.diagnostics.viewmodel.DiagnosticsDashboardViewModel
 import com.example.myapplication.shared.features.maintenance.ui.MaintenanceConsoleScreen
-import com.example.myapplication.shared.features.maintenance.ui.MaintenanceScreen
 import com.example.myapplication.shared.features.maintenance.ui.MaintenanceTestDetailScreen
 import com.example.myapplication.shared.features.maintenance.viewmodel.MaintenanceConsoleViewModel
 import com.example.myapplication.shared.features.maintenance.viewmodel.MaintenanceTestDetailViewModel
-import com.example.myapplication.shared.features.maintenance.viewmodel.MaintenanceViewModel
 import com.example.myapplication.shared.features.operator.ui.OperatorConsoleScreen
-import com.example.myapplication.shared.features.operator.ui.OperatorScreen
 import com.example.myapplication.shared.features.operator.viewmodel.OperatorConsoleViewModel
-import com.example.myapplication.shared.features.operator.viewmodel.OperatorViewModel
 import com.example.myapplication.shared.features.reports.ui.ReportsMainScreen
 import com.example.myapplication.shared.features.reports.ui.ReportsScreen
 import com.example.myapplication.shared.features.reports.viewmodel.ReportsViewModel
-import com.example.myapplication.shared.features.device.repository.DiscoveryRepository
+import com.example.myapplication.shared.features.device.repository.RegisteredShuttleRepository
 import com.example.myapplication.shared.features.settings.ui.SettingsScreen
 import com.example.myapplication.shared.features.settings.viewmodel.SettingsViewModel
 
@@ -51,9 +46,14 @@ fun AppNavHost(navigator: Navigator) {
     val isUnauthenticated = currentUser == null
 
     // Navigation Protection Guard: Block access to protected screens if unauthenticated
-    if (screenState != Screen.Splash && screenState != Screen.Login && isUnauthenticated) {
+    if (screenState != Screen.Splash && screenState != Screen.Login && screenState != Screen.Setup && isUnauthenticated) {
         LaunchedEffect(Unit) {
-            navigator.navigateTo(Screen.Login)
+            val configProvider: com.example.myapplication.shared.core.security.ConfigProvider = getKoin().get()
+            if (!configProvider.isConfigured()) {
+                navigator.navigateTo(Screen.Setup)
+            } else {
+                navigator.navigateTo(Screen.Login)
+            }
         }
         return
     }
@@ -61,6 +61,10 @@ fun AppNavHost(navigator: Navigator) {
     Box(modifier = Modifier.fillMaxSize().safeDrawingPadding()) {
         when (screenState) {
             is Screen.Splash -> SplashScreen(navigator = navigator)
+            is Screen.Setup -> {
+                val setupViewModel: com.example.myapplication.shared.features.auth.viewmodel.SetupViewModel = remember { getKoin().get() }
+                com.example.myapplication.shared.features.auth.ui.setup.SetupScreen(navigator = navigator, viewModel = setupViewModel)
+            }
             is Screen.Login -> {
                 val authViewModel: AuthViewModel = remember { getKoin().get() }
                 LoginScreen(navigator = navigator, viewModel = authViewModel)
@@ -80,49 +84,28 @@ fun AppNavHost(navigator: Navigator) {
                     DashboardScreen(navigator = navigator, viewModel = dashboardViewModel)
                 }
                 is Screen.Shuttle -> {
-                    val shuttleViewModel: com.example.myapplication.shared.features.device.viewmodel.DeviceManagementViewModel = remember { getKoin().get() }
-                    com.example.myapplication.shared.features.device.ui.DeviceManagementScreen(navigator = navigator, viewModel = shuttleViewModel)
-                }
-
-                is Screen.Operator -> {
-                    val operatorViewModel: OperatorViewModel = remember { getKoin().get() }
-                    OperatorScreen(navigator = navigator, viewModel = operatorViewModel)
+                    val shuttleViewModel: com.example.myapplication.shared.features.device.viewmodel.ShuttleManagementViewModel = remember { getKoin().get() }
+                    com.example.myapplication.shared.features.device.ui.ShuttleManagementScreen(navigator = navigator, viewModel = shuttleViewModel)
                 }
                 is Screen.OperatorConsole -> {
                     val operatorConsoleViewModel: OperatorConsoleViewModel = remember { getKoin().get() }
                     OperatorConsoleScreen(
                         navigator = navigator,
-                        viewModel = operatorConsoleViewModel,
-                        shuttleId = (screenState as Screen.OperatorConsole).shuttleId
+                        viewModel = operatorConsoleViewModel
                     )
                 }
-                is Screen.DiagnosticsShuttleSelect -> DiagnosticsScreen(navigator)
                 is Screen.DiagnosticsDashboard -> {
-                    val currentScreen = screenState as Screen.DiagnosticsDashboard
-                    val shuttleRepo: DiscoveryRepository = remember { getKoin().get() }
-                    val shuttles by shuttleRepo.getAllDevices().collectAsState(initial = emptyList())
-                    val shuttleName = if (currentScreen.shuttleId == "ALL") "All Shuttles"
-                        else shuttles.find { it.deviceId == currentScreen.shuttleId }?.nameToDisplay ?: currentScreen.shuttleId
-                    val diagnosticsDashboardViewModel: DiagnosticsDashboardViewModel = remember(currentScreen.shuttleId) {
-                        getKoin().get { org.koin.core.parameter.parametersOf(currentScreen.shuttleId, shuttleName) }
-                    }
+                    val diagnosticsDashboardViewModel: DiagnosticsDashboardViewModel = remember { getKoin().get() }
                     DiagnosticsDashboardScreen(
                         navigator = navigator,
-                        viewModel = diagnosticsDashboardViewModel,
-                        shuttleId = currentScreen.shuttleId,
-                        shuttleName = shuttleName
+                        viewModel = diagnosticsDashboardViewModel
                     )
-                }
-                is Screen.Maintenance -> {
-                    val maintenanceViewModel: MaintenanceViewModel = remember { getKoin().get() }
-                    MaintenanceScreen(navigator = navigator, viewModel = maintenanceViewModel)
                 }
                 is Screen.MaintenanceConsole -> {
                     val maintenanceConsoleViewModel: MaintenanceConsoleViewModel = remember { getKoin().get() }
                     MaintenanceConsoleScreen(
                         navigator = navigator,
-                        viewModel = maintenanceConsoleViewModel,
-                        shuttleId = (screenState as Screen.MaintenanceConsole).shuttleId
+                        viewModel = maintenanceConsoleViewModel
                     )
                 }
                 is Screen.MaintenanceTestDetail -> {
@@ -131,7 +114,6 @@ fun AppNavHost(navigator: Navigator) {
                     MaintenanceTestDetailScreen(
                         navigator = navigator,
                         viewModel = maintenanceTestDetailViewModel,
-                        shuttleId = currentScreen.shuttleId,
                         testId = currentScreen.testId
                     )
                 }
@@ -139,8 +121,8 @@ fun AppNavHost(navigator: Navigator) {
                 is Screen.Reports -> {
                     val currentScreen = screenState as Screen.Reports
                     val sid = currentScreen.shuttleId.takeIf { it != "ALL" }
-                    val shuttleRepo: DiscoveryRepository = remember { getKoin().get() }
-                    val shuttles by shuttleRepo.getAllDevices().collectAsState(initial = emptyList())
+                    val shuttleRepo: RegisteredShuttleRepository = remember { getKoin().get() }
+                    val shuttles by shuttleRepo.getAllRegisteredShuttles().collectAsState(initial = emptyList())
                     val shuttleName = if (currentScreen.shuttleId == "ALL") "All Shuttles"
                         else shuttles.find { it.deviceId == currentScreen.shuttleId }?.nameToDisplay ?: currentScreen.shuttleId
                     val reportsViewModel: ReportsViewModel = remember(currentScreen.shuttleId) {

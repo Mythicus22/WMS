@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.myapplication.shared.features.maintenance.domain.GetMaintenanceTestsUseCase
 import com.example.myapplication.shared.features.maintenance.model.TestDefinition
 import com.example.myapplication.shared.features.device.model.DiscoveredDevice
-import com.example.myapplication.shared.features.device.repository.DiscoveryRepository
+import com.example.myapplication.shared.features.device.repository.RegisteredShuttleRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,25 +17,49 @@ data class MaintenanceConsoleUiState(
     val isLoading: Boolean = true,
     val shuttle: DiscoveredDevice? = null,
     val tests: List<TestDefinition> = emptyList(),
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val isMockData: Boolean = false
 )
 
 class MaintenanceConsoleViewModel(
-    private val discoveryRepository: DiscoveryRepository,
+    private val communicationService: com.example.myapplication.shared.communication.service.CommunicationService,
     private val getMaintenanceTestsUseCase: GetMaintenanceTestsUseCase
 ) : ViewModel(), KoinComponent {
 
     private val _uiState = MutableStateFlow(MaintenanceConsoleUiState())
     val uiState: StateFlow<MaintenanceConsoleUiState> = _uiState.asStateFlow()
 
-    fun loadShuttle(shuttleId: String) {
+    init {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null, tests = getMaintenanceTestsUseCase()) }
-            try {
-                val shuttleObj = discoveryRepository.getDeviceById(shuttleId)
-                _uiState.update { curr -> curr.copy(shuttle = shuttleObj, isLoading = false) }
-            } catch (e: Exception) {
-                _uiState.update { curr -> curr.copy(errorMessage = e.message, isLoading = false) }
+            _uiState.update { it.copy(tests = getMaintenanceTestsUseCase()) }
+            communicationService.activeDevice.collect { deviceId ->
+                if (deviceId != null) {
+                    val fakeShuttle = DiscoveredDevice(
+                        deviceId = deviceId,
+                        displayName = "Shuttle $deviceId",
+                        serialNumber = "SN-$deviceId",
+                        protocolVersion = "1.0",
+                        firmwareVersion = "1.0",
+                        hardwareVersion = "mock",
+                        manufacturer = "mock",
+                        status = "ONLINE",
+                        lastSeenAt = 0L
+                    )
+                    _uiState.update { curr -> curr.copy(shuttle = fakeShuttle, isLoading = false, isMockData = false) }
+                } else {
+                    val fakeShuttle = DiscoveredDevice(
+                        deviceId = "MOCK-001",
+                        displayName = "Mock Shuttle",
+                        serialNumber = "SN-MOCK",
+                        protocolVersion = "1.0",
+                        firmwareVersion = "1.0",
+                        hardwareVersion = "mock",
+                        manufacturer = "mock",
+                        status = "ONLINE",
+                        lastSeenAt = 0L
+                    )
+                    _uiState.update { curr -> curr.copy(shuttle = fakeShuttle, isLoading = false, isMockData = true) }
+                }
             }
         }
     }

@@ -9,12 +9,15 @@ import com.example.myapplication.shared.features.maintenance.domain.RunMaintenan
 import com.example.myapplication.shared.features.maintenance.model.TestDefinition
 import com.example.myapplication.shared.features.maintenance.model.TestExecutionState
 import com.example.myapplication.shared.features.device.model.DiscoveredDevice
-import com.example.myapplication.shared.features.device.repository.DiscoveryRepository
+import com.example.myapplication.shared.features.device.repository.RegisteredShuttleRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import com.example.myapplication.shared.communication.service.CommunicationService
 
 data class MaintenanceTestDetailUiState(
     val shuttleId: String = "",
@@ -23,7 +26,8 @@ data class MaintenanceTestDetailUiState(
     val definition: TestDefinition? = null,
     val executionState: TestExecutionState = TestExecutionState(testId = "", shuttleId = ""),
     val isRunning: Boolean = false,
-    val actionMessage: String? = null
+    val actionMessage: String? = null,
+    val isMockData: Boolean = false
 )
 
 sealed class MaintenanceTestEvent {
@@ -33,29 +37,49 @@ sealed class MaintenanceTestEvent {
 }
 
 class MaintenanceTestDetailViewModel(
-    private val discoveryRepository: DiscoveryRepository,
+    private val registeredShuttleRepository: RegisteredShuttleRepository,
     private val getTestDetailUseCase: GetTestDetailUseCase,
     private val runMaintenanceTestUseCase: RunMaintenanceTestUseCase,
-    private val resetMaintenanceTestUseCase: ResetMaintenanceTestUseCase
+    private val resetMaintenanceTestUseCase: ResetMaintenanceTestUseCase,
+    private val communicationService: CommunicationService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MaintenanceTestDetailUiState())
     val uiState: StateFlow<MaintenanceTestDetailUiState> = _uiState.asStateFlow()
 
-    fun initialize(shuttleId: String, testId: String) {
+    fun initialize(testId: String) {
         val def = getTestDetailUseCase(testId)
-        _uiState.update { curr -> curr.copy(shuttleId = shuttleId, testId = testId, definition = def) }
-
-        viewModelScope.launch {
-            val shuttleObj = discoveryRepository.getDeviceById(shuttleId)
-            _uiState.update { curr -> curr.copy(shuttle = shuttleObj) }
-        }
-
-        viewModelScope.launch {
-            getTestDetailUseCase.observeExecution(shuttleId, testId).collect { exec ->
-                _uiState.update { curr -> curr.copy(executionState = exec) }
+        _uiState.update { curr -> curr.copy(testId = testId, definition = def) }
+        
+        communicationService.activeDevice.onEach { activeId ->
+            if (activeId != null) {
+                _uiState.update { it.copy(shuttleId = activeId, isMockData = false) }
+                // Fetch shuttle details
+                val shuttleObj = registeredShuttleRepository.getRegisteredShuttleById(activeId)
+                _uiState.update { curr -> curr.copy(shuttle = shuttleObj) }
+                
+                // Observe execution
+                getTestDetailUseCase.observeExecution(activeId, testId).collect { exec ->
+                    _uiState.update { curr -> curr.copy(executionState = exec) }
+                }
+            } else {
+                _uiState.update { it.copy(
+                    shuttleId = "MOCK-001",
+                    isMockData = true,
+                    shuttle = DiscoveredDevice(
+                        deviceId = "MOCK-001", 
+                        serialNumber = "MOCK-001", 
+                        displayName = "Mock Shuttle", 
+                        protocolVersion = "1.0",
+                        firmwareVersion = "1.0.0",
+                        hardwareVersion = "mock",
+                        manufacturer = "mock",
+                        status = "ONLINE", 
+                        lastSeenAt = 0L
+                    )
+                ) }
             }
-        }
+        }.launchIn(viewModelScope)
     }
 
     fun onEvent(event: MaintenanceTestEvent) {

@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.example.myapplication.shared.core.navigation.Navigator
 import com.example.myapplication.shared.core.navigation.Screen
 import com.example.myapplication.shared.features.device.model.DiscoveredDevice
-import com.example.myapplication.shared.features.device.repository.DiscoveryRepository
+import com.example.myapplication.shared.features.device.repository.RegisteredShuttleRepository
 import com.example.myapplication.shared.presentation.components.AppToolbar
 import com.example.myapplication.shared.presentation.theme.AppColors
 import com.example.myapplication.shared.presentation.theme.AppDimensions
@@ -30,8 +30,9 @@ import org.koin.mp.KoinPlatform.getKoin
 // ---------------------------------------------------------------------------
 @Composable
 fun ReportsScreen(navigator: Navigator) {
-    val discoveryRepository: DiscoveryRepository = remember { getKoin().get() }
-    val shuttles by discoveryRepository.getAllDevices().collectAsState(initial = emptyList())
+    val registeredShuttleRepository: RegisteredShuttleRepository = remember { getKoin().get() }
+    val shuttles by registeredShuttleRepository.getAllRegisteredShuttles().collectAsState(initial = emptyList())
+    var refreshTrigger by remember { mutableStateOf(0) }
 
     Column(
         modifier = Modifier
@@ -40,7 +41,12 @@ fun ReportsScreen(navigator: Navigator) {
     ) {
         AppToolbar(
             title = "Reports & Analytics",
-            onNavigationClick = { navigator.goBack() }
+            onNavigationClick = { navigator.goBack() },
+            actions = {
+                IconButton(onClick = { refreshTrigger++ }) {
+                    Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = MaterialTheme.colorScheme.onPrimary)
+                }
+            }
         )
 
         LazyColumn(

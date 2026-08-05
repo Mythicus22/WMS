@@ -5,17 +5,7 @@ import com.example.myapplication.shared.features.settings.model.CommunicationSet
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
-enum class ConnectionState {
-    DISCONNECTED,
-    CONNECTING,
-    CONNECTED,
-    AUTHENTICATING,
-    SUBSCRIBED,
-    READY,
-    ERROR
-}
-
-interface CommunicationService {
+interface CommunicationTransport {
     val connectionState: StateFlow<ConnectionState>
     val diagnosticsLog: StateFlow<List<String>>
     val lastConnectedTime: StateFlow<Long>
@@ -33,7 +23,6 @@ interface CommunicationService {
 
     suspend fun setActiveDevice(deviceId: String?, ipAddress: String? = null)
 
-    // Subscriptions
     suspend fun subscribeToDiscovery()
     suspend fun unsubscribeFromDiscovery()
 
@@ -45,7 +34,6 @@ interface CommunicationService {
     fun observeHeartbeats(deviceId: String): Flow<WspHeartbeatPayload>
     fun observeResponses(deviceId: String): Flow<WspResponsePayload>
 
-    // Publications
     suspend fun sendCommand(payload: WspCommandPayload)
     suspend fun sendMaintenanceRequest(payload: WspMaintenanceRequestPayload)
     suspend fun manualDiscoveryRequest()

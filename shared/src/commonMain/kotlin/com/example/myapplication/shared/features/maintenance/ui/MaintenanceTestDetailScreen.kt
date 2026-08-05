@@ -59,11 +59,10 @@ import com.example.myapplication.shared.presentation.theme.AppDimensions
 fun MaintenanceTestDetailScreen(
     navigator: Navigator,
     viewModel: MaintenanceTestDetailViewModel,
-    shuttleId: String,
     testId: String
 ) {
-    LaunchedEffect(shuttleId, testId) {
-        viewModel.initialize(shuttleId, testId)
+    LaunchedEffect(testId) {
+        viewModel.initialize(testId)
     }
 
     val state by viewModel.uiState.collectAsState()
@@ -91,6 +90,13 @@ fun MaintenanceTestDetailScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(AppDimensions.spacing16)
             ) {
+                if (state.isMockData) {
+                    Row(modifier = Modifier.fillMaxWidth().background(com.example.myapplication.shared.presentation.theme.AppColors.Warning.copy(alpha = 0.2f)).padding(8.dp), horizontalArrangement = Arrangement.Center) {
+                        Text("No Active Shuttle - Showing Mock Data", color = com.example.myapplication.shared.presentation.theme.AppColors.Warning, fontWeight = FontWeight.Bold)
+                    }
+                    Spacer(modifier = Modifier.height(AppDimensions.spacing12))
+                }
+                
                 // Action message banner
                 state.actionMessage?.let { msg ->
                     Row(

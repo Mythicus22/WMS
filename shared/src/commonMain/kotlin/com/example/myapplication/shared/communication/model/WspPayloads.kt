@@ -2,6 +2,13 @@ package com.example.myapplication.shared.communication.model
 
 import com.example.myapplication.shared.features.diagnostics.model.*
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
+
+@Serializable
+data class WspWebSocketMessage(
+    val type: String,
+    val data: JsonElement
+)
 
 @Serializable
 data class WspInfoPayload(

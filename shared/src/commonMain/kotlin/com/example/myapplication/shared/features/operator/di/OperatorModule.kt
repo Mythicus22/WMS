@@ -7,17 +7,15 @@ import com.example.myapplication.shared.features.operator.domain.SendDiscoveredD
 import com.example.myapplication.shared.features.operator.repository.CommandRepository
 import com.example.myapplication.shared.features.operator.repository.CommandRepositoryImpl
 import com.example.myapplication.shared.features.operator.viewmodel.OperatorConsoleViewModel
-import com.example.myapplication.shared.features.operator.viewmodel.OperatorViewModel
 import org.koin.dsl.module
 
 val operatorModule = module {
     single<CommandRepository> { CommandRepositoryImpl() }
 
-    factory { GetEnabledDiscoveredDevicesUseCase(get()) }
+    factory { GetEnabledDiscoveredDevicesUseCase(get(), get()) }
     factory { GetDiscoveredDeviceLiveStatusUseCase(get()) }
     factory { GetDiscoveredDeviceFaultsUseCase(get()) }
     factory { SendDiscoveredDeviceCommandUseCase(get()) }
 
-    factory { OperatorViewModel(get()) }
     factory { OperatorConsoleViewModel(get(), get(), get(), get()) }
 }

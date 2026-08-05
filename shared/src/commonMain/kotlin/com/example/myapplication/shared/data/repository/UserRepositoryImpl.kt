@@ -1,6 +1,6 @@
 package com.example.myapplication.shared.data.repository
 
-import com.example.myapplication.shared.core.security.PasswordHasher
+
 import com.example.myapplication.shared.database.AppDatabase
 import com.example.myapplication.shared.domain.model.FeaturePermission
 import com.example.myapplication.shared.domain.model.SettingPermission
@@ -21,36 +21,7 @@ class UserRepositoryImpl(
     private val queries = database.appDatabaseQueries
 
     override suspend fun seedDefaultAdminIfNeeded() {
-        val adminUser = getUserByUsername("admin")
-        if (adminUser == null) {
-            val defaultAdmin = User(
-                id = "user_admin_001",
-                username = "admin",
-                passwordHash = PasswordHasher.hashPassword("admin123"),
-                role = UserRole.ADMIN,
-                grantedFeatures = FeaturePermission.entries.toSet(),
-                grantedSettings = SettingPermission.entries.toSet(),
-                createdAt = System.currentTimeMillis()
-            )
-            queries.insertUser(
-                id = defaultAdmin.id,
-                username = defaultAdmin.username,
-                passwordHash = defaultAdmin.passwordHash,
-                role = defaultAdmin.role.key,
-                grantedFeaturesCsv = defaultAdmin.grantedFeatures.joinToString(",") { it.key },
-                grantedSettingsCsv = defaultAdmin.grantedSettings.joinToString(",") { it.key },
-                createdAt = defaultAdmin.createdAt
-            )
-        } else {
-            // Restore admin privileges if lost
-            if (adminUser.role != UserRole.ADMIN || !adminUser.grantedFeatures.contains(FeaturePermission.USER_MANAGEMENT)) {
-                val restoredAdmin = adminUser.copy(
-                    role = UserRole.ADMIN,
-                    grantedFeatures = adminUser.grantedFeatures + FeaturePermission.USER_MANAGEMENT
-                )
-                updateUser(restoredAdmin)
-            }
-        }
+        // No-op: Default admin is now handled by the First-Time Setup flow and ConfigProvider.
     }
 
     override suspend fun getUserByUsername(username: String): User? {

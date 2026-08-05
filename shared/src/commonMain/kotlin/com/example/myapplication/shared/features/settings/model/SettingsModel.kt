@@ -111,13 +111,21 @@ data class GeneralSettings(
     val currentDateTimePreview: String = "2026-07-29 | 14:30 IST"
 )
 
+enum class CommunicationMode(val displayName: String) {
+    DIRECT("Direct (Standalone)"),
+    MQTT_BROKER("MQTT Broker (Warehouse Server)")
+}
+
 @Serializable
 data class CommunicationSettings(
+    val mode: CommunicationMode = CommunicationMode.MQTT_BROKER,
     val mqttBrokerAddress: String = "192.168.68.78",
     val mqttPort: Int = 1883,
     val clientId: String = "TABLET01",
     val username: String = "wms_app",
     val password: String = "",
+    val allowedShuttleIps: List<String> = emptyList(),
+    val directWebSocketPort: Int = 8081,
     val keepAliveSeconds: Int = 60,
     val heartbeatIntervalMs: Int = 1000,
     val communicationTimeoutMs: Int = 5000,

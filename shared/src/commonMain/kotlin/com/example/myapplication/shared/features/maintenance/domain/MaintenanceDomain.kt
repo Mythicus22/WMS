@@ -5,15 +5,15 @@ import com.example.myapplication.shared.features.maintenance.model.TestDefinitio
 import com.example.myapplication.shared.features.maintenance.model.TestExecutionState
 import com.example.myapplication.shared.features.maintenance.repository.MaintenanceRepository
 import com.example.myapplication.shared.features.device.model.DiscoveredDevice
-import com.example.myapplication.shared.features.device.repository.DiscoveryRepository
+import com.example.myapplication.shared.features.device.repository.RegisteredShuttleRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class GetEnabledShuttlesForMaintenanceUseCase(
-    private val discoveryRepository: DiscoveryRepository
+    private val registeredShuttleRepository: RegisteredShuttleRepository
 ) {
     operator fun invoke(): Flow<List<DiscoveredDevice>> {
-        return discoveryRepository.getAllDevices().map { shuttles ->
+        return registeredShuttleRepository.getAllRegisteredShuttles().map { shuttles ->
             shuttles.filter { it.status == "ONLINE" }
         }
     }

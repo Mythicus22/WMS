@@ -8,11 +8,5 @@ import org.koin.dsl.module
 val diagnosticsModule = module {
     single<DiagnosticsRepository> { DiagnosticsRepositoryImpl(get()) }
     
-    factory { (shuttleId: String, shuttleName: String) ->
-        DiagnosticsDashboardViewModel(
-            shuttleId = shuttleId,
-            shuttleName = shuttleName,
-            repository = get()
-        )
-    }
+    factory { DiagnosticsDashboardViewModel(get(), get()) }
 }

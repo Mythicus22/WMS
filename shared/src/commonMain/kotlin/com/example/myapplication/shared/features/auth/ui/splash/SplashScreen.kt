@@ -30,13 +30,18 @@ import com.example.myapplication.shared.presentation.theme.AppDimensions
 import kotlinx.coroutines.delay
 import org.koin.mp.KoinPlatform.getKoin
 
+import com.example.myapplication.shared.core.security.ConfigProvider
+
 @Composable
 fun SplashScreen(navigator: Navigator) {
     val getCurrentUserUseCase: GetCurrentUserUseCase = remember { getKoin().get() }
+    val configProvider: ConfigProvider = remember { getKoin().get() }
 
     LaunchedEffect(Unit) {
         delay(AppConstants.SPLASH_SCREEN_DELAY)
-        if (getCurrentUserUseCase.isLoggedIn()) {
+        if (!configProvider.isConfigured()) {
+            navigator.navigateTo(Screen.Setup)
+        } else if (getCurrentUserUseCase.isLoggedIn()) {
             navigator.navigateTo(Screen.Dashboard)
         } else {
             navigator.navigateTo(Screen.Login)

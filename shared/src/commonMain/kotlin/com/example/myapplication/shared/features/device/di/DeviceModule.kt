@@ -4,11 +4,11 @@ import com.example.myapplication.shared.features.device.repository.DiscoveryRepo
 import com.example.myapplication.shared.features.device.repository.DiscoveryRepositoryImpl
 import com.example.myapplication.shared.features.device.repository.RegisteredShuttleRepository
 import com.example.myapplication.shared.features.device.repository.RegisteredShuttleRepositoryImpl
-import com.example.myapplication.shared.features.device.viewmodel.DeviceManagementViewModel
+import com.example.myapplication.shared.features.device.viewmodel.ShuttleManagementViewModel
 import org.koin.dsl.module
 
 val discoveryModule = module {
     single<RegisteredShuttleRepository> { RegisteredShuttleRepositoryImpl(get()) }
     single<DiscoveryRepository> { DiscoveryRepositoryImpl(get()) }
-    factory { DeviceManagementViewModel(get(), get()) }
+    factory { ShuttleManagementViewModel(get(), get(), get()) }
 }

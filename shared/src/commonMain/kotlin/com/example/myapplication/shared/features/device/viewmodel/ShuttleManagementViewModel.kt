@@ -10,33 +10,45 @@ import com.example.myapplication.shared.presentation.viewmodel.BaseViewModel
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import com.example.myapplication.shared.communication.service.CommunicationService
 
 
 
 data class ShuttleUiState(
     val discoveredShuttles: List<DiscoveredDevice> = emptyList(),
     val registeredShuttles: List<DiscoveredDevice> = emptyList(),
-    val isLoading: Boolean = false
+    val activeDeviceId: String? = null,
+    val isLoading: Boolean = false,
+    val connectionState: com.example.myapplication.shared.communication.service.ConnectionState = com.example.myapplication.shared.communication.service.ConnectionState.DISCONNECTED,
+    val diagnosticsLog: List<String> = emptyList(),
+    val lastConnectedTime: Long = 0L,
+    val lastError: String = "",
+    val reconnectCount: Int = 0,
+    val incomingMessageCount: Long = 0L,
+    val outgoingMessageCount: Long = 0L
 )
 
 sealed interface ShuttleUiEvent : UiEvent {
     object OnManualDiscovery : ShuttleUiEvent
     data class OnRegisterShuttle(val device: DiscoveredDevice) : ShuttleUiEvent
     data class OnUnregisterShuttle(val id: String) : ShuttleUiEvent
+    data class OnConnectShuttle(val deviceId: String, val ipAddress: String? = null) : ShuttleUiEvent
 }
 
 sealed interface ShuttleUiEffect : UiEffect {
     data class ShowError(val message: String) : ShuttleUiEffect
 }
 
-class DeviceManagementViewModel(
+class ShuttleManagementViewModel(
     private val discoveryRepository: DiscoveryRepository,
-    private val registeredShuttleRepository: RegisteredShuttleRepository
+    private val registeredShuttleRepository: RegisteredShuttleRepository,
+    private val communicationService: CommunicationService
 ) : BaseViewModel<ShuttleUiState, ShuttleUiEvent, ShuttleUiEffect>() {
 
     init {
         setState(ShuttleUiState())
         observeShuttles()
+        onEvent(ShuttleUiEvent.OnManualDiscovery)
     }
 
     private fun observeShuttles() {
@@ -48,6 +60,39 @@ class DeviceManagementViewModel(
         registeredShuttleRepository.getAllRegisteredShuttles().onEach { shuttles ->
             val currentState = uiState.value ?: ShuttleUiState()
             setState(currentState.copy(registeredShuttles = shuttles))
+        }.launchIn(viewModelScope)
+
+        communicationService.activeDevice.onEach { activeId ->
+            val currentState = uiState.value ?: ShuttleUiState()
+            setState(currentState.copy(activeDeviceId = activeId))
+        }.launchIn(viewModelScope)
+
+        communicationService.connectionState.onEach { state ->
+            setState(uiState.value?.copy(connectionState = state) ?: ShuttleUiState())
+        }.launchIn(viewModelScope)
+
+        communicationService.diagnosticsLog.onEach { log ->
+            setState(uiState.value?.copy(diagnosticsLog = log) ?: ShuttleUiState())
+        }.launchIn(viewModelScope)
+
+        communicationService.lastConnectedTime.onEach { time ->
+            setState(uiState.value?.copy(lastConnectedTime = time) ?: ShuttleUiState())
+        }.launchIn(viewModelScope)
+
+        communicationService.lastError.onEach { error ->
+            setState(uiState.value?.copy(lastError = error) ?: ShuttleUiState())
+        }.launchIn(viewModelScope)
+
+        communicationService.reconnectCount.onEach { count ->
+            setState(uiState.value?.copy(reconnectCount = count) ?: ShuttleUiState())
+        }.launchIn(viewModelScope)
+
+        communicationService.incomingMessageCount.onEach { count ->
+            setState(uiState.value?.copy(incomingMessageCount = count) ?: ShuttleUiState())
+        }.launchIn(viewModelScope)
+
+        communicationService.outgoingMessageCount.onEach { count ->
+            setState(uiState.value?.copy(outgoingMessageCount = count) ?: ShuttleUiState())
         }.launchIn(viewModelScope)
     }
 
@@ -81,8 +126,20 @@ class DeviceManagementViewModel(
                 viewModelScope.launch {
                     try {
                         registeredShuttleRepository.unregisterShuttle(event.id)
+                        if (currentState.activeDeviceId == event.id) {
+                            communicationService.setActiveDevice(null)
+                        }
                     } catch (e: Exception) {
                         emitEffect(ShuttleUiEffect.ShowError(e.message ?: "Failed to unregister shuttle"))
+                    }
+                }
+            }
+            is ShuttleUiEvent.OnConnectShuttle -> {
+                viewModelScope.launch {
+                    try {
+                        communicationService.setActiveDevice(event.deviceId, event.ipAddress)
+                    } catch (e: Exception) {
+                        emitEffect(ShuttleUiEffect.ShowError(e.message ?: "Failed to connect to shuttle"))
                     }
                 }
             }
