@@ -164,6 +164,10 @@ class MqttTransport(
         return observeTopicAsFlow(Topics.diagnostics(deviceId))
     }
 
+    override fun observeReports(deviceId: String): Flow<WspReportsPayload> {
+        return observeTopicAsFlow(Topics.reports(deviceId))
+    }
+
     override fun observeFaults(deviceId: String): Flow<WspFaultPayload> {
         return observeTopicAsFlow(Topics.fault(deviceId))
     }

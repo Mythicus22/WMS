@@ -12,5 +12,5 @@ val communicationModule = module {
     single<MqttClient> { MqttClientFactory.create() }
     single { MqttTransport(get()) }
     single { DirectTransport() }
-    single<CommunicationService> { CommunicationServiceImpl(get(), get()) }
+    single<CommunicationService> { CommunicationServiceImpl(get(), get(), get()) }
 }

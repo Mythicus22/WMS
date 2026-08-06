@@ -147,7 +147,8 @@ fun SettingsScreen(navigator: Navigator, viewModel: SettingsViewModel) {
                         isEditing = false
                     },
                     onCancel = { isEditing = false },
-                    onRequestEdit = { isEditing = true }
+                    onRequestEdit = { isEditing = true },
+                    onRevertToDefault = { viewModel.onEvent(SettingsUiEvent.ResetToDefault(SettingsTab.GENERAL)) }
                 )
                 SettingsTab.COMMUNICATION -> CommunicationSettingsView(
                     comm = state.settings.communication,
@@ -159,7 +160,8 @@ fun SettingsScreen(navigator: Navigator, viewModel: SettingsViewModel) {
                     },
                     onTestConnection = { comm -> viewModel.onEvent(SettingsUiEvent.OnTestConnection(comm)) },
                     onDisconnect = { viewModel.onEvent(SettingsUiEvent.OnDisconnect) },
-                    onCancel = { isEditing = false }
+                    onCancel = { isEditing = false },
+                    onRevertToDefault = { viewModel.onEvent(SettingsUiEvent.ResetToDefault(SettingsTab.COMMUNICATION)) }
                 )
                 SettingsTab.REPORTS -> ReportSettingsView(
                     reports = state.settings.reports,
@@ -168,18 +170,21 @@ fun SettingsScreen(navigator: Navigator, viewModel: SettingsViewModel) {
                         viewModel.onEvent(SettingsUiEvent.UpdateReports(updated))
                         isEditing = false
                     },
-                    onCancel = { isEditing = false }
+                    onCancel = { isEditing = false },
+                    onRevertToDefault = { viewModel.onEvent(SettingsUiEvent.ResetToDefault(SettingsTab.REPORTS)) }
                 )
                 SettingsTab.BACKUP -> BackupSettingsView(
                     backup = state.settings.backup,
                     isProcessing = state.isProcessing,
+                    isEditing = isEditing,
                     onAutoBackupToggle = { enabled ->
                         viewModel.onEvent(SettingsUiEvent.UpdateBackup(
                             state.settings.backup.copy(automaticBackup = enabled)
                         ))
                     },
                     onBackupNow = { path -> viewModel.onEvent(SettingsUiEvent.PerformBackup(path)) },
-                    onRestore = { backupId -> viewModel.onEvent(SettingsUiEvent.PerformRestore(backupId)) }
+                    onRestore = { backupId -> viewModel.onEvent(SettingsUiEvent.PerformRestore(backupId)) },
+                    onRevertToDefault = { viewModel.onEvent(SettingsUiEvent.ResetToDefault(SettingsTab.BACKUP)) }
                 )
                 SettingsTab.ABOUT -> AboutSystemView(systemInfo = state.settings.systemInfo)
             }
@@ -323,7 +328,8 @@ private fun GeneralSettingsView(
     isEditing: Boolean,
     onSave: (GeneralSettings) -> Unit,
     onCancel: () -> Unit,
-    onRequestEdit: () -> Unit
+    onRequestEdit: () -> Unit,
+    onRevertToDefault: () -> Unit
 ) {
     // Draft state (only mutated when editing)
     var draft by remember(general) { mutableStateOf(general) }
@@ -357,10 +363,6 @@ private fun GeneralSettingsView(
                     ThemeToggleButton(mode = ThemeMode.DARK, icon = Icons.Default.DarkMode, label = "Dark", selected = draft.themeMode == ThemeMode.DARK) {
                         draft = draft.copy(themeMode = ThemeMode.DARK)
                         onSave(draft.copy(themeMode = ThemeMode.DARK))
-                    }
-                    ThemeToggleButton(mode = ThemeMode.SYSTEM, icon = Icons.Default.SettingsSystemDaydream, label = "Auto", selected = draft.themeMode == ThemeMode.SYSTEM) {
-                        draft = draft.copy(themeMode = ThemeMode.SYSTEM)
-                        onSave(draft.copy(themeMode = ThemeMode.SYSTEM))
                     }
                 }
             }
@@ -466,18 +468,31 @@ private fun GeneralSettingsView(
             }
         }
 
-        // Save / Cancel buttons when editing
+        // Save / Cancel / Revert buttons when editing
         if (isEditing) {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedButton(onClick = { onCancel() }, shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(48.dp)) {
-                    Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp))
+            Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(
+                    onClick = onRevertToDefault,
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = AppColors.Error)
+                ) {
+                    Icon(Icons.Default.Restore, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Cancel")
+                    Text("Revert to Default Settings")
                 }
-                Button(onClick = { onSave(draft) }, shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(48.dp)) {
-                    Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("Save Changes")
+                
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(onClick = { onCancel() }, shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(48.dp)) {
+                        Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Cancel")
+                    }
+                    Button(onClick = { onSave(draft) }, shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(48.dp)) {
+                        Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text("Save Changes")
+                    }
                 }
             }
         }
@@ -513,7 +528,8 @@ private fun CommunicationSettingsView(
     onSave: (CommunicationSettings) -> Unit,
     onTestConnection: (CommunicationSettings) -> Unit,
     onDisconnect: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    onRevertToDefault: () -> Unit
 ) {
     var draft by remember(comm) { mutableStateOf(comm) }
     LaunchedEffect(isEditing) { if (!isEditing) draft = comm }
@@ -777,12 +793,25 @@ private fun CommunicationSettingsView(
 
         if (isEditing) {
             val hasError = portError != null || keepAliveError != null || heartbeatError != null || timeoutError != null || directWsPortError != null
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedButton(onClick = onCancel, shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(48.dp)) {
-                    Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Cancel")
+            Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(
+                    onClick = onRevertToDefault,
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = AppColors.Error)
+                ) {
+                    Icon(Icons.Default.Restore, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Revert to Default Settings")
                 }
-                Button(onClick = { if (!hasError) onSave(draft) }, enabled = !hasError, shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(48.dp)) {
-                    Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Save")
+
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(onClick = onCancel, shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(48.dp)) {
+                        Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Cancel")
+                    }
+                    Button(onClick = { if (!hasError) onSave(draft) }, enabled = !hasError, shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(48.dp)) {
+                        Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Save")
+                    }
                 }
             }
         }
@@ -797,7 +826,8 @@ private fun ReportSettingsView(
     reports: ReportSettings,
     isEditing: Boolean,
     onSave: (ReportSettings) -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    onRevertToDefault: () -> Unit
 ) {
     var draft by remember(reports) { mutableStateOf(reports) }
     LaunchedEffect(isEditing) { if (!isEditing) draft = reports }
@@ -857,36 +887,18 @@ private fun ReportSettingsView(
                     label = { Text("Report Storage Path") },
                     modifier = Modifier.fillMaxWidth(),
                     trailingIcon = {
-                        IconButton(onClick = { showPathPicker = true }) {
+                        val launcher = com.example.myapplication.shared.features.settings.components.rememberDirectoryPicker { uri ->
+                            if (uri != null) {
+                                draft = draft.copy(reportStorageLocation = uri)
+                            }
+                        }
+                        IconButton(onClick = { launcher.launch() }) {
                             Icon(Icons.Default.FolderOpen, contentDescription = "Pick Folder")
                         }
                     },
                     singleLine = true
                 )
-                if (showPathPicker) {
-                    AlertDialog(
-                        onDismissRequest = { showPathPicker = false },
-                        title = { Text("Select Report Storage Folder", fontWeight = FontWeight.Bold) },
-                        text = {
-                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                presetPaths.forEach { path ->
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth().clickable {
-                                            draft = draft.copy(reportStorageLocation = path)
-                                            showPathPicker = false
-                                        }.padding(vertical = 8.dp, horizontal = 4.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Icon(Icons.Default.Folder, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
-                                        Spacer(Modifier.width(8.dp))
-                                        Text(path, style = MaterialTheme.typography.bodySmall)
-                                    }
-                                }
-                            }
-                        },
-                        confirmButton = { TextButton(onClick = { showPathPicker = false }) { Text("Cancel") } }
-                    )
-                }
+
             } else {
                 ViewRow("Storage Location", reports.reportStorageLocation, Icons.Default.Folder)
             }
@@ -906,12 +918,25 @@ private fun ReportSettingsView(
         }
 
         if (isEditing) {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedButton(onClick = onCancel, shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(48.dp)) {
-                    Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Cancel")
+            Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedButton(
+                    onClick = onRevertToDefault,
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = AppColors.Error)
+                ) {
+                    Icon(Icons.Default.Restore, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Revert to Default Settings")
                 }
-                Button(onClick = { onSave(draft) }, shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(48.dp)) {
-                    Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Save")
+
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(onClick = onCancel, shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(48.dp)) {
+                        Icon(Icons.Default.Close, contentDescription = null, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Cancel")
+                    }
+                    Button(onClick = { onSave(draft) }, shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(48.dp)) {
+                        Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(16.dp)); Spacer(Modifier.width(6.dp)); Text("Save")
+                    }
                 }
             }
         }
@@ -925,9 +950,11 @@ private fun ReportSettingsView(
 private fun BackupSettingsView(
     backup: BackupSettings,
     isProcessing: Boolean,
+    isEditing: Boolean,
     onAutoBackupToggle: (Boolean) -> Unit,
     onBackupNow: (String) -> Unit,
-    onRestore: (String) -> Unit
+    onRestore: (String) -> Unit,
+    onRevertToDefault: () -> Unit
 ) {
     var selectedPath by remember(backup.backupLocation) { mutableStateOf(backup.backupLocation) }
     var showPathPicker by remember { mutableStateOf(false) }
@@ -957,7 +984,12 @@ private fun BackupSettingsView(
                     Text("Backup Destination", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                     Text(selectedPath, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                 }
-                OutlinedButton(onClick = { showPathPicker = true }, shape = RoundedCornerShape(8.dp)) {
+                val backupLauncher = com.example.myapplication.shared.features.settings.components.rememberDirectoryPicker { uri ->
+                    if (uri != null) {
+                        selectedPath = uri
+                    }
+                }
+                OutlinedButton(onClick = { backupLauncher.launch() }, shape = RoundedCornerShape(8.dp)) {
                     Icon(Icons.Default.FolderOpen, contentDescription = null, modifier = Modifier.size(14.dp))
                     Spacer(Modifier.width(4.dp))
                     Text("Change", style = MaterialTheme.typography.labelSmall)
@@ -1041,33 +1073,22 @@ private fun BackupSettingsView(
                 }
             }
         }
+
+        if (isEditing) {
+            OutlinedButton(
+                onClick = onRevertToDefault,
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = AppColors.Error)
+            ) {
+                Icon(Icons.Default.Restore, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("Revert to Default Settings")
+            }
+        }
     }
 
-    // Path picker dialog
-    if (showPathPicker) {
-        AlertDialog(
-            onDismissRequest = { showPathPicker = false },
-            title = { Text("Select Backup Destination", fontWeight = FontWeight.Bold) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    presetPaths.forEach { path ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth().clickable {
-                                selectedPath = path
-                                showPathPicker = false
-                            }.padding(vertical = 8.dp, horizontal = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(Icons.Default.Folder, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(path, style = MaterialTheme.typography.bodySmall)
-                        }
-                    }
-                }
-            },
-            confirmButton = { TextButton(onClick = { showPathPicker = false }) { Text("Cancel") } }
-        )
-    }
+
 
     // Restore confirmation dialog
     restoreTarget?.let { entry ->

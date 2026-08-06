@@ -23,20 +23,15 @@ enum class UserRole(
         displayName = "Maintenance",
         description = "Guided sensor tests and maintenance calibration"
     ),
-    ENGINEER(
-        key = "ENGINEER",
-        displayName = "Engineer",
-        description = "Diagnostics telemetry and system health monitoring"
-    ),
-    VIEWER(
-        key = "VIEWER",
-        displayName = "Viewer",
-        description = "Read-only access to operational reports and dashboard"
+    ANALYST(
+        key = "ANALYST",
+        displayName = "Analyst",
+        description = "System reporting, analytics, and operational tracking"
     );
 
     companion object {
         fun fromKey(key: String): UserRole {
-            return entries.firstOrNull { it.key.equals(key, ignoreCase = true) } ?: VIEWER
+            return entries.firstOrNull { it.key.equals(key, ignoreCase = true) } ?: OPERATOR
         }
     }
 }

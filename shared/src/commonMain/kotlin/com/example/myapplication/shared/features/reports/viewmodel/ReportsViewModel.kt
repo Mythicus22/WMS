@@ -45,6 +45,7 @@ sealed interface ReportsUiEvent {
     data class UpdateFilter(val filter: ReportFilter) : ReportsUiEvent
     object RequestExport : ReportsUiEvent
     object DismissStatus : ReportsUiEvent
+    object RefreshData : ReportsUiEvent
 }
 
 class ReportsViewModel(
@@ -78,43 +79,31 @@ class ReportsViewModel(
         _uiState.update { it.copy(isLoadingReports = true, isLoadingAnalytics = true) }
 
         viewModelScope.launch {
-            getSummary(shuttleId, filter).collect { data -> _uiState.update { it.copy(summary = data) } }
-        }
-        viewModelScope.launch {
-            getStoreOps(shuttleId, filter).collect { data -> _uiState.update { it.copy(storeOps = data) } }
-        }
-        viewModelScope.launch {
-            getRetrieveOps(shuttleId, filter).collect { data -> _uiState.update { it.copy(retrieveOps = data) } }
-        }
-        viewModelScope.launch {
-            getTasks(shuttleId, filter).collect { data -> _uiState.update { it.copy(tasks = data) } }
-        }
-        viewModelScope.launch {
-            getMissions(shuttleId, filter).collect { data -> _uiState.update { it.copy(missions = data) } }
-        }
-        viewModelScope.launch {
-            getUtilization(shuttleId, filter).collect { data -> _uiState.update { it.copy(utilization = data) } }
-        }
-        viewModelScope.launch {
-            getBattery(shuttleId, filter).collect { data -> _uiState.update { it.copy(battery = data) } }
-        }
-        viewModelScope.launch {
-            getMotor(shuttleId, filter).collect { data -> _uiState.update { it.copy(motorRuntime = data) } }
-        }
-        viewModelScope.launch {
-            getFaults(shuttleId, filter).collect { data -> _uiState.update { it.copy(faults = data) } }
-        }
-        viewModelScope.launch {
-            getMaintenance(shuttleId, filter).collect { data -> _uiState.update { it.copy(maintenance = data) } }
-        }
-        viewModelScope.launch {
-            getProductivity(shuttleId, filter).collect { data ->
-                _uiState.update { it.copy(productivity = data, isLoadingReports = false) }
-            }
-        }
-        viewModelScope.launch {
-            getAnalytics(shuttleId, filter).collect { data ->
-                _uiState.update { it.copy(analytics = data, isLoadingAnalytics = false) }
+            try {
+                kotlinx.coroutines.withTimeout(5000) {
+                    launch { getSummary(shuttleId, filter).collect { data -> _uiState.update { it.copy(summary = data) } } }
+                    launch { getStoreOps(shuttleId, filter).collect { data -> _uiState.update { it.copy(storeOps = data) } } }
+                    launch { getRetrieveOps(shuttleId, filter).collect { data -> _uiState.update { it.copy(retrieveOps = data) } } }
+                    launch { getTasks(shuttleId, filter).collect { data -> _uiState.update { it.copy(tasks = data) } } }
+                    launch { getMissions(shuttleId, filter).collect { data -> _uiState.update { it.copy(missions = data) } } }
+                    launch { getUtilization(shuttleId, filter).collect { data -> _uiState.update { it.copy(utilization = data) } } }
+                    launch { getBattery(shuttleId, filter).collect { data -> _uiState.update { it.copy(battery = data) } } }
+                    launch { getMotor(shuttleId, filter).collect { data -> _uiState.update { it.copy(motorRuntime = data) } } }
+                    launch { getFaults(shuttleId, filter).collect { data -> _uiState.update { it.copy(faults = data) } } }
+                    launch { getMaintenance(shuttleId, filter).collect { data -> _uiState.update { it.copy(maintenance = data) } } }
+                    launch { getProductivity(shuttleId, filter).collect { data ->
+                        _uiState.update { it.copy(productivity = data) }
+                    } }
+                    launch { getAnalytics(shuttleId, filter).collect { data ->
+                        _uiState.update { it.copy(analytics = data) }
+                    } }
+                }
+            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                _uiState.update { it.copy(statusMessage = "Loading timed out. Please check the database connection.") }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(statusMessage = "Error loading reports: ${e.message}") }
+            } finally {
+                _uiState.update { it.copy(isLoadingReports = false, isLoadingAnalytics = false) }
             }
         }
     }
@@ -129,6 +118,7 @@ class ReportsViewModel(
             }
             ReportsUiEvent.RequestExport -> performExport()
             ReportsUiEvent.DismissStatus -> _uiState.update { it.copy(statusMessage = null, exportResult = null) }
+            ReportsUiEvent.RefreshData -> loadAll()
         }
     }
 

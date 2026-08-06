@@ -2,213 +2,232 @@ package com.example.myapplication.shared.features.reports.repository
 
 import com.example.myapplication.shared.features.reports.model.*
 import com.example.myapplication.shared.features.device.repository.RegisteredShuttleRepository
+import com.example.myapplication.shared.communication.service.CommunicationService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOf
 
 class ReportsRepositoryImpl(
-    private val shuttleRepo: RegisteredShuttleRepository
+    private val shuttleRepo: RegisteredShuttleRepository,
+    private val communicationService: CommunicationService
 ) : ReportsRepository {
 
-    private fun getShuttlePool(shuttleId: String?): Flow<List<Pair<String, String>>> {
-        return shuttleRepo.getAllRegisteredShuttles().map { shuttles ->
-            val pairs = shuttles.map { it.deviceId to it.nameToDisplay }
-            if (shuttleId == null || shuttleId == "ALL") pairs else pairs.filter { it.first == shuttleId }
-        }
-    }
-
     override fun getSummary(shuttleId: String?, filter: ReportFilter): Flow<List<SummaryData>> {
-        return getShuttlePool(shuttleId).map { pool ->
-            pool.mapIndexed { i, (id, name) ->
-                SummaryData(id, name, 820 + i * 120, 410 + i * 60, 410 + i * 60, 195 + i * 30,
-                    82.4f - i * 2.5f, 18.5f + i * 1.2f, 3 + i, "${filter.startDate} — ${filter.endDate}")
-            }
-        }
+        if (shuttleId == null || shuttleId == "ALL") return flowOf(emptyList())
+        return communicationService.observeReports(shuttleId).map { reports ->
+            val summary = reports.summary
+            listOf(
+                SummaryData(
+                    shuttleId = reports.deviceId,
+                    shuttleName = reports.deviceId,
+                    totalOperations = summary.totalStoreOperations + summary.totalRetrieveOperations,
+                    totalStores = summary.totalStoreOperations,
+                    totalRetrieves = summary.totalRetrieveOperations,
+                    totalMissions = summary.totalTasksCompleted,
+                    avgBattery = summary.avgBatteryLevel,
+                    uptimeHours = 24.0f, // Need proper mapping
+                    faultCount = summary.totalFaults,
+                    period = "${filter.startDate} — ${filter.endDate}"
+                )
+            )
+        }.catch { emit(emptyList()) }
     }
 
     override fun getStoreOperations(shuttleId: String?, filter: ReportFilter): Flow<List<OperationRecord>> {
-        return getShuttlePool(shuttleId).map { pool ->
-            val data = mutableListOf<OperationRecord>()
-            var idx = 1
-            pool.forEach { (id, name) ->
-                repeat(8) { i ->
-                    data.add(OperationRecord(
-                        "OP-S${idx++}", id, name, "STORE", (i % 5) + 1, "R${(i % 20) + 1}-C${(i % 10) + 1}",
-                        45 + i * 5, if (i == 3) "FAILED" else "COMPLETED",
-                        "2026-07-${(i + 1).toString().padStart(2,'0')} 0${i}:${i * 3}:00", "OPR-01"
-                    ))
-                }
+        if (shuttleId == null || shuttleId == "ALL") return flowOf(emptyList())
+        return communicationService.observeReports(shuttleId).map { reports ->
+            reports.storeOperations.map { op ->
+                OperationRecord(
+                    id = op.id,
+                    shuttleId = reports.deviceId,
+                    shuttleName = reports.deviceId,
+                    operationType = "STORE",
+                    rackLevel = 1,
+                    rackPosition = op.location,
+                    duration = op.timeTakenSec,
+                    status = op.status,
+                    timestamp = op.timestamp,
+                    operatorId = "SYSTEM"
+                )
             }
-            data
-        }
+        }.catch { emit(emptyList()) }
     }
 
     override fun getRetrieveOperations(shuttleId: String?, filter: ReportFilter): Flow<List<OperationRecord>> {
-        return getShuttlePool(shuttleId).map { pool ->
-            val data = mutableListOf<OperationRecord>()
-            var idx = 1
-            pool.forEach { (id, name) ->
-                repeat(8) { i ->
-                    data.add(OperationRecord(
-                        "OP-R${idx++}", id, name, "RETRIEVE", (i % 5) + 1, "R${(i % 20) + 1}-C${(i % 10) + 1}",
-                        38 + i * 4, if (i == 5) "ABORTED" else "COMPLETED",
-                        "2026-07-${(i + 1).toString().padStart(2,'0')} 1${i % 4}:${i * 5}:00", "OPR-02"
-                    ))
-                }
+        if (shuttleId == null || shuttleId == "ALL") return flowOf(emptyList())
+        return communicationService.observeReports(shuttleId).map { reports ->
+            reports.retrieveOperations.map { op ->
+                OperationRecord(
+                    id = op.id,
+                    shuttleId = reports.deviceId,
+                    shuttleName = reports.deviceId,
+                    operationType = "RETRIEVE",
+                    rackLevel = 1,
+                    rackPosition = op.location,
+                    duration = op.timeTakenSec,
+                    status = op.status,
+                    timestamp = op.timestamp,
+                    operatorId = "SYSTEM"
+                )
             }
-            data
-        }
+        }.catch { emit(emptyList()) }
     }
 
     override fun getTaskHistory(shuttleId: String?, filter: ReportFilter): Flow<List<TaskRecord>> {
-        val types = listOf("STORE", "RETRIEVE", "COMPACT_PUSH", "COMPACT_PULL", "COUNT_ITEMS")
-        val statuses = listOf("COMPLETED", "COMPLETED", "COMPLETED", "FAILED", "ABORTED")
-        return getShuttlePool(shuttleId).map { pool ->
-            val data = mutableListOf<TaskRecord>()
-            var idx = 1
-            pool.forEach { (id, name) ->
-                repeat(10) { i ->
-                    data.add(TaskRecord(
-                        "TK-${idx++}", id, name, types[i % types.size],
-                        if (i < 3) "HIGH" else "NORMAL", statuses[i % statuses.size],
-                        "2026-07-${(i + 1).toString().padStart(2,'0')} 08:00:00",
-                        "2026-07-${(i + 1).toString().padStart(2,'0')} 08:${(i * 5 + 45).toString().padStart(2,'0')}:00",
-                        i * 5 + 45
-                    ))
-                }
+        if (shuttleId == null || shuttleId == "ALL") return flowOf(emptyList())
+        return communicationService.observeReports(shuttleId).map { reports ->
+            reports.taskHistory.map { t ->
+                TaskRecord(
+                    taskId = t.id,
+                    shuttleId = reports.deviceId,
+                    shuttleName = reports.deviceId,
+                    taskType = t.type,
+                    priority = t.priority,
+                    status = t.status,
+                    createdAt = t.createdTime,
+                    completedAt = t.completedTime,
+                    duration = t.durationSec
+                )
             }
-            data
-        }
+        }.catch { emit(emptyList()) }
     }
 
     override fun getMissionHistory(shuttleId: String?, filter: ReportFilter): Flow<List<MissionRecord>> {
-        val types = listOf("BATCH_STORE", "BATCH_RETRIEVE", "MAINTENANCE_PASS", "INVENTORY_SCAN")
-        return getShuttlePool(shuttleId).map { pool ->
-            val data = mutableListOf<MissionRecord>()
-            var idx = 1
-            pool.forEach { (id, name) ->
-                repeat(6) { i ->
-                    data.add(MissionRecord(
-                        "MS-${idx++}", id, name, types[i % types.size], (i + 3) * 4,
-                        if (i == 2) "FAILED" else "COMPLETED", 14.5f + i * 2.8f,
-                        "2026-07-${(i + 1).toString().padStart(2,'0')} 09:00:00",
-                        "2026-07-${(i + 1).toString().padStart(2,'0')} 11:${i * 10}:00",
-                        if (i == 2) 2 else 0
-                    ))
-                }
+        if (shuttleId == null || shuttleId == "ALL") return flowOf(emptyList())
+        return communicationService.observeReports(shuttleId).map { reports ->
+            reports.missionHistory.map { m ->
+                MissionRecord(
+                    missionId = m.id,
+                    shuttleId = reports.deviceId,
+                    shuttleName = reports.deviceId,
+                    missionType = m.type,
+                    waypoints = m.totalTasks,
+                    status = m.status,
+                    distance = m.distanceTraveled,
+                    startTime = m.startTime,
+                    endTime = m.endTime,
+                    faultsDuringMission = m.faultsEncountered
+                )
             }
-            data
-        }
+        }.catch { emit(emptyList()) }
     }
 
     override fun getShuttleUtilization(shuttleId: String?, filter: ReportFilter): Flow<List<UtilizationRecord>> {
-        return getShuttlePool(shuttleId).map { pool ->
-            val data = mutableListOf<UtilizationRecord>()
-            pool.forEach { (id, name) ->
-                repeat(7) { i ->
-                    val active = 6.5f + i * 0.8f
-                    val idle = 17.5f - active
-                    data.add(UtilizationRecord(
-                        id, name, "2026-07-${(i + 22).toString().padStart(2,'0')}",
-                        active, idle, (active / 24f) * 100f, 80 + i * 12, 180f + i * 22f
-                    ))
-                }
+        if (shuttleId == null || shuttleId == "ALL") return flowOf(emptyList())
+        return communicationService.observeReports(shuttleId).map { reports ->
+            reports.utilization.map { u ->
+                UtilizationRecord(
+                    shuttleId = reports.deviceId,
+                    shuttleName = reports.deviceId,
+                    date = u.date,
+                    activeHours = u.activeHours,
+                    idleHours = u.idleHours,
+                    utilizationPercent = u.utilizationPercentage,
+                    totalCycles = u.tasksCompleted,
+                    distanceCovered = u.distanceTraveled
+                )
             }
-            data
-        }
+        }.catch { emit(emptyList()) }
     }
 
     override fun getBatteryReport(shuttleId: String?, filter: ReportFilter): Flow<List<BatteryRecord>> {
-        return getShuttlePool(shuttleId).map { pool ->
-            val data = mutableListOf<BatteryRecord>()
-            var idx = 1
-            pool.forEach { (id, name) ->
-                repeat(8) { i ->
-                    data.add(BatteryRecord(
-                        "BT-${idx++}", id, name,
-                        "2026-07-${(i + 22).toString().padStart(2,'0')} ${(i % 24).toString().padStart(2,'0')}:00:00",
-                        (90f - i * 8f).coerceAtLeast(40f), 48.2f - i * 0.5f, 12.4f + i * 0.2f,
-                        28.5f + i * 0.8f, 142 + i, if (i % 3 == 0) "CHARGING" else "DISCHARGING"
-                    ))
-                }
+        if (shuttleId == null || shuttleId == "ALL") return flowOf(emptyList())
+        return communicationService.observeReports(shuttleId).map { reports ->
+            reports.batteryReport.map { b ->
+                BatteryRecord(
+                    recordId = b.id,
+                    shuttleId = reports.deviceId,
+                    shuttleName = reports.deviceId,
+                    timestamp = b.timestamp,
+                    batteryPercent = b.endPercentage,
+                    voltage = b.endVoltage,
+                    current = b.endCurrent,
+                    temperature = b.endTemperature,
+                    cycleCount = 0,
+                    chargeStatus = b.status
+                )
             }
-            data
-        }
+        }.catch { emit(emptyList()) }
     }
 
     override fun getMotorRuntime(shuttleId: String?, filter: ReportFilter): Flow<List<MotorRuntimeRecord>> {
-        return getShuttlePool(shuttleId).map { pool ->
-            val data = mutableListOf<MotorRuntimeRecord>()
-            var idx = 1
-            pool.forEach { (id, name) ->
-                repeat(7) { i ->
-                    data.add(MotorRuntimeRecord(
-                        "MR-${idx++}", id, name, "2026-07-${(i + 22).toString().padStart(2,'0')}",
-                        6.2f + i * 0.4f, 4.8f + i * 0.3f, 410 + i * 30, 195 + i * 20,
-                        52.4f + i * 0.6f, 48.1f + i * 0.5f
-                    ))
-                }
+        if (shuttleId == null || shuttleId == "ALL") return flowOf(emptyList())
+        return communicationService.observeReports(shuttleId).map { reports ->
+            reports.motorRuntime.map { m ->
+                MotorRuntimeRecord(
+                    recordId = m.id,
+                    shuttleId = reports.deviceId,
+                    shuttleName = reports.deviceId,
+                    date = m.date,
+                    driveMotorHours = m.driveMotorHours,
+                    liftMotorHours = m.liftMotorHours,
+                    driveMotorCycles = m.driveMotorStarts,
+                    liftMotorCycles = m.liftMotorStarts,
+                    driveMotorTemp = m.avgDriveTemp,
+                    liftMotorTemp = m.avgLiftTemp
+                )
             }
-            data
-        }
+        }.catch { emit(emptyList()) }
     }
 
     override fun getFaultHistory(shuttleId: String?, filter: ReportFilter): Flow<List<FaultRecord>> {
-        val faultTypes = listOf("SENSOR_FAULT", "MOTOR_OVERLOAD", "COMMUNICATION_LOST", "BATTERY_LOW", "E_STOP_TRIGGERED")
-        val severities = listOf("MINOR", "MAJOR", "CRITICAL", "MINOR", "MAJOR")
-        return getShuttlePool(shuttleId).map { pool ->
-            val data = mutableListOf<FaultRecord>()
-            var idx = 1
-            pool.forEach { (id, name) ->
-                repeat(5) { i ->
-                    data.add(FaultRecord(
-                        "FT-${idx++}", id, name, "E${1000 + i}", faultTypes[i % faultTypes.size],
-                        severities[i % severities.size], "Fault on ${faultTypes[i % faultTypes.size].replace('_',' ')}",
-                        "2026-07-${(i + 22).toString().padStart(2,'0')} 14:${i * 10}:00",
-                        if (i < 4) "2026-07-${(i + 22).toString().padStart(2,'0')} 15:${i * 10}:00" else null,
-                        if (i < 4) "TECH-01" else null, if (i < 4) (i + 1) * 15 else 0
-                    ))
-                }
+        if (shuttleId == null || shuttleId == "ALL") return flowOf(emptyList())
+        return communicationService.observeReports(shuttleId).map { reports ->
+            reports.faultHistory.map { f ->
+                FaultRecord(
+                    faultId = f.id,
+                    shuttleId = reports.deviceId,
+                    shuttleName = reports.deviceId,
+                    faultCode = f.faultCode,
+                    faultType = f.faultType,
+                    severity = f.severity,
+                    description = f.description,
+                    timestamp = f.timeOccurred,
+                    resolvedAt = f.timeResolved,
+                    resolvedBy = f.resolvedBy,
+                    downtimeMinutes = f.downtimeMin
+                )
             }
-            data
-        }
+        }.catch { emit(emptyList()) }
     }
 
     override fun getMaintenanceHistory(shuttleId: String?, filter: ReportFilter): Flow<List<MaintenanceRecord>> {
-        val types = listOf("SCHEDULED", "CORRECTIVE", "PREVENTIVE")
-        return getShuttlePool(shuttleId).map { pool ->
-            val data = mutableListOf<MaintenanceRecord>()
-            var idx = 1
-            pool.forEach { (id, name) ->
-                repeat(4) { i ->
-                    data.add(MaintenanceRecord(
-                        "MH-${idx++}", id, name, types[i % types.size], "TECH-0${i + 1}",
-                        "2026-07-${(i * 7 + 1).toString().padStart(2,'0')}",
-                        90 + i * 30, if (i == 1) listOf("Drive Belt", "Sensor Module") else listOf("Filter"),
-                        "Routine ${types[i % types.size].lowercase()} maintenance completed.",
-                        "2026-08-${(i * 7 + 1).toString().padStart(2,'0')}"
-                    ))
-                }
+        if (shuttleId == null || shuttleId == "ALL") return flowOf(emptyList())
+        return communicationService.observeReports(shuttleId).map { reports ->
+            reports.maintenanceHistory.map { m ->
+                MaintenanceRecord(
+                    recordId = m.id,
+                    shuttleId = reports.deviceId,
+                    shuttleName = reports.deviceId,
+                    maintenanceType = m.type,
+                    technician = m.technician,
+                    date = m.date,
+                    duration = m.durationMin,
+                    partsReplaced = m.partsReplaced,
+                    notes = m.notes,
+                    nextScheduled = m.nextScheduledDate
+                )
             }
-            data
-        }
+        }.catch { emit(emptyList()) }
     }
 
     override fun getProductivity(shuttleId: String?, filter: ReportFilter): Flow<List<ProductivityRecord>> {
-        return getShuttlePool(shuttleId).map { pool ->
-            val data = mutableListOf<ProductivityRecord>()
-            pool.forEach { (id, name) ->
-                repeat(7) { i ->
-                    val completed = 95 + i * 8
-                    val failed = if (i == 3) 4 else 1
-                    val avgTime = 48.5f - i * 1.2f
-                    data.add(ProductivityRecord(
-                        "2026-07-${(i + 22).toString().padStart(2,'0')}",
-                        id, name, completed, failed, avgTime,
-                        completed / (avgTime / 3600f), (completed.toFloat() / (completed + failed)) * 100f
-                    ))
-                }
-            }
-            data
-        }
+        if (shuttleId == null || shuttleId == "ALL") return flowOf(emptyList())
+        return communicationService.observeReports(shuttleId).map { reports ->
+            val p = reports.productivity
+            listOf(
+                ProductivityRecord(
+                    date = filter.startDate ?: "Now",
+                    shuttleId = reports.deviceId,
+                    shuttleName = reports.deviceId,
+                    cyclesCompleted = p.completed,
+                    cyclesFailed = p.failed,
+                    avgCycleTimeSec = 0f, 
+                    throughputPerHour = 0f,
+                    efficiencyPercent = p.efficiencyPercentage
+                )
+            )
+        }.catch { emit(emptyList()) }
     }
 }

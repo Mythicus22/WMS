@@ -17,4 +17,5 @@ interface SettingsRepository {
     suspend fun updateBackupSettings(backup: BackupSettings): Result<Unit>
     suspend fun backupDatabase(destinationPath: String): Result<String>
     suspend fun restoreDatabase(backupId: String): Result<String>
+    fun resetSettings()
 }

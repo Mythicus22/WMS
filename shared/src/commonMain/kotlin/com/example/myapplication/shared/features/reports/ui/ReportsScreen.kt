@@ -33,6 +33,39 @@ fun ReportsScreen(navigator: Navigator) {
     val registeredShuttleRepository: RegisteredShuttleRepository = remember { getKoin().get() }
     val shuttles by registeredShuttleRepository.getAllRegisteredShuttles().collectAsState(initial = emptyList())
     var refreshTrigger by remember { mutableStateOf(0) }
+    var showTimeoutError by remember { mutableStateOf(false) }
+
+    val communicationService: com.example.myapplication.shared.communication.service.CommunicationService = remember { getKoin().get() }
+    val activeDeviceId by communicationService.activeDevice.collectAsState(initial = null)
+    
+    val activeShuttles = remember(shuttles, activeDeviceId) {
+        val list = shuttles.filter { it.status.equals("ONLINE", ignoreCase = true) }.toMutableList()
+        if (activeDeviceId != null && list.none { it.deviceId == activeDeviceId }) {
+            list.add(
+                DiscoveredDevice(
+                    deviceId = activeDeviceId!!,
+                    serialNumber = "LIVE",
+                    displayName = "Active Shuttle",
+                    protocolVersion = "Unknown",
+                    firmwareVersion = "Unknown",
+                    hardwareVersion = "Unknown",
+                    manufacturer = "Unknown",
+                    status = "ONLINE",
+                    lastSeenAt = kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
+                )
+            )
+        }
+        list
+    }
+
+    LaunchedEffect(activeShuttles.isEmpty()) {
+        if (activeShuttles.isEmpty()) {
+            kotlinx.coroutines.delay(2000)
+            showTimeoutError = true
+        } else {
+            showTimeoutError = false
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -86,7 +119,7 @@ fun ReportsScreen(navigator: Navigator) {
                 )
             }
 
-            val activeShuttles = shuttles.filter { it.status.equals("ONLINE", ignoreCase = true) }
+            // activeShuttles is now derived from shuttles and activeDeviceId
             activeShuttles.chunked(2).forEach { rowShuttles ->
                 item {
                     Row(
@@ -96,6 +129,7 @@ fun ReportsScreen(navigator: Navigator) {
                         rowShuttles.forEach { shuttle ->
                             ShuttleSelectionCard(
                                 shuttle = shuttle,
+                                isActiveConnected = (shuttle.deviceId == activeDeviceId),
                                 onClick = { navigator.navigateTo(Screen.Reports(shuttleId = shuttle.deviceId)) },
                                 modifier = Modifier.weight(1f)
                             )
@@ -107,13 +141,19 @@ fun ReportsScreen(navigator: Navigator) {
                 }
             }
 
-            if (shuttles.isEmpty()) {
+            if (activeShuttles.isEmpty()) {
                 item {
                     Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            CircularProgressIndicator()
-                            Spacer(Modifier.height(8.dp))
-                            Text("Loading shuttles...", style = MaterialTheme.typography.bodySmall)
+                            if (showTimeoutError) {
+                                Icon(Icons.Default.ErrorOutline, contentDescription = "Error", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(48.dp))
+                                Spacer(Modifier.height(8.dp))
+                                Text("No shuttles registered", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+                            } else {
+                                CircularProgressIndicator()
+                                Spacer(Modifier.height(8.dp))
+                                Text("Loading shuttles...", style = MaterialTheme.typography.bodySmall)
+                            }
                         }
                     }
                 }
@@ -174,6 +214,7 @@ private fun AllShuttlesCard(onClick: () -> Unit) {
 @Composable
 private fun ShuttleSelectionCard(
     shuttle: DiscoveredDevice,
+    isActiveConnected: Boolean = false,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -181,10 +222,16 @@ private fun ShuttleSelectionCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f), RoundedCornerShape(12.dp)),
+            .border(
+                if (isActiveConnected) 2.dp else 1.dp,
+                if (isActiveConnected) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
+                RoundedCornerShape(12.dp)
+            ),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = if (isActiveConnected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isActiveConnected) 4.dp else 1.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(16.dp),

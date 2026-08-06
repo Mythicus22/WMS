@@ -66,11 +66,7 @@ enum class SettingPermission(
         displayName = "System Configuration",
         description = "Configure application and system settings"
     ),
-    SHUTTLE_CONFIGURATION(
-        key = "SHUTTLE_CONFIGURATION",
-        displayName = "Shuttle Configuration",
-        description = "Configure shuttle default parameters and limits"
-    ),
+
     COMMUNICATION_SETTINGS(
         key = "COMMUNICATION_SETTINGS",
         displayName = "Communication Settings",

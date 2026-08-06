@@ -39,8 +39,8 @@ fun DiagnosticsDashboardScreen(
                 title = "Diagnostics: ${uiState.shuttleName}",
                 onNavigationClick = { navigator.goBack() },
                 actions = {
-                    IconButton(onClick = { /* Export */ }) {
-                        Icon(Icons.Default.FileDownload, contentDescription = "Export Diagnostics")
+                    IconButton(onClick = { viewModel.refreshData() }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Refresh Diagnostics")
                     }
                 }
             )

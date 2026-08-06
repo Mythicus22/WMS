@@ -50,6 +50,10 @@ fun ReportsMainScreen(
                         Text(shuttleName, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
                     }
                 }
+                // Refresh button
+                IconButton(onClick = { viewModel.onEvent(ReportsUiEvent.RefreshData) }) {
+                    Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = MaterialTheme.colorScheme.onPrimary)
+                }
                 // Single Export button
                 IconButton(
                     onClick = { viewModel.onEvent(ReportsUiEvent.RequestExport) },
@@ -111,9 +115,20 @@ fun ReportsMainScreen(
         }
 
         // ── Tab Content ───────────────────────────────────────────────────
-        when (state.selectedTab) {
-            ReportsMainTab.REPORTS   -> ReportsTabScreen(state = state, onEvent = viewModel::onEvent)
-            ReportsMainTab.ANALYTICS -> AnalyticsTabScreen(state = state)
+        Box(modifier = Modifier.fillMaxSize()) {
+            when (state.selectedTab) {
+                ReportsMainTab.REPORTS   -> ReportsTabScreen(state = state, onEvent = viewModel::onEvent)
+                ReportsMainTab.ANALYTICS -> AnalyticsTabScreen(state = state)
+            }
+            if ((state.selectedTab == ReportsMainTab.REPORTS && state.isLoadingReports) ||
+                (state.selectedTab == ReportsMainTab.ANALYTICS && state.isLoadingAnalytics)) {
+                Box(
+                    modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background.copy(alpha=0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
         }
     }
 }

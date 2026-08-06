@@ -16,14 +16,35 @@ class ConfigProviderImpl(private val context: Context) : ConfigProvider {
             .build()
     }
     
-    private val sharedPreferences by lazy {
-        EncryptedSharedPreferences.create(
-            context,
-            PREFS_NAME,
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
+    private val sharedPreferences: android.content.SharedPreferences by lazy {
+        try {
+            EncryptedSharedPreferences.create(
+                context,
+                PREFS_NAME,
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        } catch (e: Exception) {
+            // Delete corrupted shared preferences file if keystore was corrupted/lost
+            try {
+                context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit().clear().commit()
+                val dir = java.io.File(context.applicationInfo.dataDir, "shared_prefs")
+                val prefsFile = java.io.File(dir, "$PREFS_NAME.xml")
+                if (prefsFile.exists()) {
+                    prefsFile.delete()
+                }
+            } catch (ignored: Exception) {}
+
+            // Try creating again after deleting the corrupted file
+            EncryptedSharedPreferences.create(
+                context,
+                PREFS_NAME,
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        }
     }
 
     override fun isConfigured(): Boolean {
@@ -44,5 +65,21 @@ class ConfigProviderImpl(private val context: Context) : ConfigProvider {
             return Pair(username, hash)
         }
         return null
+    }
+
+    override fun saveSessionId(sessionId: String) {
+        sharedPreferences.edit()
+            .putString("session_id", sessionId)
+            .apply()
+    }
+
+    override fun getSessionId(): String? {
+        return sharedPreferences.getString("session_id", null)
+    }
+
+    override fun clearSessionId() {
+        sharedPreferences.edit()
+            .remove("session_id")
+            .apply()
     }
 }

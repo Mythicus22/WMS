@@ -1,0 +1,30 @@
+CREATE TABLE IF NOT EXISTS DeviceAliasEntity (
+    deviceId TEXT PRIMARY KEY NOT NULL,
+    alias TEXT,
+    notes TEXT,
+    updatedAt INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS RegisteredShuttleEntity (
+    deviceId TEXT PRIMARY KEY NOT NULL,
+    serialNumber TEXT NOT NULL,
+    displayName TEXT NOT NULL,
+    protocolVersion TEXT NOT NULL,
+    firmwareVersion TEXT NOT NULL,
+    hardwareVersion TEXT NOT NULL,
+    manufacturer TEXT NOT NULL,
+    status TEXT NOT NULL,
+    lastSeenAt INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS SettingsEntity (
+    id TEXT PRIMARY KEY NOT NULL,
+    jsonValue TEXT NOT NULL,
+    updatedAt INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS ActiveShuttleEntity (
+    id TEXT PRIMARY KEY NOT NULL,
+    deviceId TEXT NOT NULL,
+    updatedAt INTEGER NOT NULL
+);

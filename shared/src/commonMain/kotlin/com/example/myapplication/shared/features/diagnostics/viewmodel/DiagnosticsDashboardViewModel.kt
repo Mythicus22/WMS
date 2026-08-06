@@ -35,55 +35,17 @@ class DiagnosticsDashboardViewModel(
         viewModelScope.launch {
             communicationService.activeDevice.collect { deviceId ->
                 if (deviceId != null) {
-                    _uiState.update { it.copy(shuttleId = deviceId, shuttleName = "Shuttle $deviceId", isMockData = false, isLoading = true) }
+                    _uiState.update { it.copy(shuttleId = deviceId, shuttleName = "Shuttle $deviceId", isMockData = false, isLoading = false) }
                     observeDevice(deviceId)
                 } else {
                     _uiState.update { 
                         it.copy(
-                            shuttleId = "MOCK-001", 
-                            shuttleName = "Mock Shuttle", 
-                            isMockData = true,
+                            shuttleId = "", 
+                            shuttleName = "No Shuttle Connected", 
+                            isMockData = false,
                             isLoading = false,
-                            data = com.example.myapplication.shared.features.diagnostics.model.DiagnosticsData(
-                                shuttleId = "MOCK-001",
-                                timestamp = kotlinx.datetime.Clock.System.now(),
-                                summary = com.example.myapplication.shared.features.diagnostics.model.DiagnosticsSummary(
-                                    overallState = com.example.myapplication.shared.features.diagnostics.model.DiagnosticsComponentState.ONLINE,
-                                    activeFaults = 0, warningCount = 0, onlineComponents = 0, offlineComponents = 0,
-                                    communicationState = com.example.myapplication.shared.features.diagnostics.model.DiagnosticsComponentState.ONLINE,
-                                    batteryState = com.example.myapplication.shared.features.diagnostics.model.DiagnosticsComponentState.ONLINE,
-                                    plcState = com.example.myapplication.shared.features.diagnostics.model.DiagnosticsComponentState.ONLINE
-                                ),
-                                motors = emptyList(),
-                                battery = com.example.myapplication.shared.features.diagnostics.model.BatteryDiagnostics(
-                                    state = com.example.myapplication.shared.features.diagnostics.model.DiagnosticsComponentState.ONLINE,
-                                    voltage = 0f, current = 0f, temperature = 0f, percentage = 0f, remainingCapacityAh = 0f,
-                                    estimatedRuntimeMinutes = 0, chargeCycles = 0, isCharging = false, healthPercentage = 0f
-                                ),
-                                plc = com.example.myapplication.shared.features.diagnostics.model.PLCDiagnostics(
-                                    state = com.example.myapplication.shared.features.diagnostics.model.DiagnosticsComponentState.ONLINE,
-                                    statusText = "RUN", cpuUtilizationPercent = 0f, scanTimeMs = 0f, memoryUsagePercent = 0f,
-                                    programStatus = "OK", watchdogStatus = "OK", communicationStatus = "OK", uptimeSeconds = 0L
-                                ),
-                                communication = com.example.myapplication.shared.features.diagnostics.model.CommunicationDiagnostics(
-                                    state = com.example.myapplication.shared.features.diagnostics.model.DiagnosticsComponentState.ONLINE,
-                                    mqttStatus = "OK", canStatus = "OK", radioReceiverStatus = "OK", wifiSignalStrengthDbm = 0,
-                                    framesSent = 0L, framesReceived = 0L, packetLossPercent = 0f, communicationErrors = 0,
-                                    busLoadPercent = 0f, heartbeatStatus = "OK"
-                                ),
-                                sensors = emptyList(),
-                                relays = emptyList(),
-                                radio = com.example.myapplication.shared.features.diagnostics.model.RadioDiagnostics(
-                                    state = com.example.myapplication.shared.features.diagnostics.model.DiagnosticsComponentState.ONLINE,
-                                    signalStrengthPercent = 0f, receiverStatus = "OK", packetCount = 0L, packetLossCount = 0L,
-                                    lastPacketReceivedTime = null
-                                ),
-                                emergencyStop = com.example.myapplication.shared.features.diagnostics.model.EmergencyStopDiagnostics(
-                                    state = com.example.myapplication.shared.features.diagnostics.model.DiagnosticsComponentState.ONLINE,
-                                    isTriggered = false, lastTriggerTime = null, recoveryStatus = "READY"
-                                )
-                            )
-                        ) 
+                            data = null
+                        )
                     }
                 }
             }
@@ -93,10 +55,23 @@ class DiagnosticsDashboardViewModel(
     private fun observeDevice(shuttleId: String) {
         diagJob?.cancel()
         diagJob = viewModelScope.launch {
-            repository.getDiagnostics(shuttleId).collect { data ->
-                _uiState.update { it.copy(isLoading = false, data = data) }
+            try {
+                kotlinx.coroutines.withTimeout(5000) {
+                    repository.getDiagnostics(shuttleId).collect { data ->
+                        _uiState.update { it.copy(isLoading = false, data = data) }
+                    }
+                }
+            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                // Ignore timeout, stop loading
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
+    }
+
+    fun refreshData() {
+        if (_uiState.value.shuttleId.isBlank() || _uiState.value.isMockData) return
+        _uiState.update { it.copy(isLoading = true) }
+        observeDevice(_uiState.value.shuttleId)
     }
 
     fun setFilterType(type: String) {

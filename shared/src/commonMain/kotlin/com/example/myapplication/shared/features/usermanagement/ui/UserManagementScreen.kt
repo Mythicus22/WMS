@@ -377,6 +377,8 @@ private fun UserEditorDialog(
         mutableStateOf(userToEdit?.grantedSettings ?: emptySet())
     }
 
+    var showAdminConfirmationDialog by remember { mutableStateOf(false) }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -431,7 +433,34 @@ private fun UserEditorDialog(
                         Surface(
                             modifier = Modifier
                                 .weight(1f)
-                                .clickable(enabled = !isAdminMain) { selectedRole = role },
+                                .clickable(enabled = !isAdminMain) { 
+                                    selectedRole = role 
+                                    
+                                    // Automatically assign permissions based on role
+                                    when (role) {
+                                        UserRole.ADMIN -> {
+                                            selectedFeatures = FeaturePermission.entries.toSet()
+                                            selectedSettings = SettingPermission.entries.toSet()
+                                            // Ensure admin confirmation is prompted
+                                            showAdminConfirmationDialog = true
+                                        }
+                                        UserRole.OPERATOR -> {
+                                            selectedFeatures = setOf(FeaturePermission.OPERATOR, FeaturePermission.SHUTTLE_MANAGEMENT, FeaturePermission.SETTINGS)
+                                            selectedSettings = setOf(SettingPermission.SYSTEM_CONFIGURATION, SettingPermission.COMMUNICATION_SETTINGS)
+                                            showAdminConfirmationDialog = false
+                                        }
+                                        UserRole.MAINTENANCE -> {
+                                            selectedFeatures = setOf(FeaturePermission.DIAGNOSTICS, FeaturePermission.MAINTENANCE, FeaturePermission.SHUTTLE_MANAGEMENT, FeaturePermission.SETTINGS)
+                                            selectedSettings = setOf(SettingPermission.SYSTEM_CONFIGURATION, SettingPermission.COMMUNICATION_SETTINGS)
+                                            showAdminConfirmationDialog = false
+                                        }
+                                        UserRole.ANALYST -> {
+                                            selectedFeatures = setOf(FeaturePermission.REPORTS, FeaturePermission.SHUTTLE_MANAGEMENT, FeaturePermission.SETTINGS)
+                                            selectedSettings = setOf(SettingPermission.SYSTEM_CONFIGURATION, SettingPermission.COMMUNICATION_SETTINGS, SettingPermission.REPORT_CONFIGURATION)
+                                            showAdminConfirmationDialog = false
+                                        }
+                                    }
+                                },
                             shape = RoundedCornerShape(8.dp),
                             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                             contentColor = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
@@ -452,8 +481,6 @@ private fun UserEditorDialog(
                 }
 
                 Spacer(modifier = Modifier.height(AppDimensions.spacing20))
-
-                var showAdminConfirmationDialog by remember { mutableStateOf(false) }
 
                 if (showAdminConfirmationDialog) {
                     AlertDialog(

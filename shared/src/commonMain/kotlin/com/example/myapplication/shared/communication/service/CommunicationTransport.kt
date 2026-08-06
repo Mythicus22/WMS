@@ -30,6 +30,7 @@ interface CommunicationTransport {
     fun observeStatus(deviceId: String): Flow<WspStatusPayload>
     fun observeTelemetry(deviceId: String): Flow<WspTelemetryPayload>
     fun observeDiagnostics(deviceId: String): Flow<WspDiagnosticsPayload>
+    fun observeReports(deviceId: String): Flow<WspReportsPayload>
     fun observeFaults(deviceId: String): Flow<WspFaultPayload>
     fun observeHeartbeats(deviceId: String): Flow<WspHeartbeatPayload>
     fun observeResponses(deviceId: String): Flow<WspResponsePayload>

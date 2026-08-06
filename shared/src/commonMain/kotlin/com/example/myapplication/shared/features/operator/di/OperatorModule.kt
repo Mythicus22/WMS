@@ -10,7 +10,7 @@ import com.example.myapplication.shared.features.operator.viewmodel.OperatorCons
 import org.koin.dsl.module
 
 val operatorModule = module {
-    single<CommandRepository> { CommandRepositoryImpl() }
+    single<CommandRepository> { CommandRepositoryImpl(get()) }
 
     factory { GetEnabledDiscoveredDevicesUseCase(get(), get()) }
     factory { GetDiscoveredDeviceLiveStatusUseCase(get()) }

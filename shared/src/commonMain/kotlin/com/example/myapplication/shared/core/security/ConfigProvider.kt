@@ -19,4 +19,19 @@ interface ConfigProvider {
      * Returns null if not configured.
      */
     fun readConfig(): Pair<String, String>?
+
+    /**
+     * Saves the logged-in session ID securely.
+     */
+    fun saveSessionId(sessionId: String)
+
+    /**
+     * Retrieves the stored session ID, or null if no active session exists.
+     */
+    fun getSessionId(): String?
+
+    /**
+     * Clears the stored session ID.
+     */
+    fun clearSessionId()
 }

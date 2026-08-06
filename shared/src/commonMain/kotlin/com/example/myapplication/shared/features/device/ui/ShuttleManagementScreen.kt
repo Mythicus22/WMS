@@ -98,8 +98,45 @@ fun ShuttleManagementScreen(
                     contentPadding = PaddingValues(AppDimensions.spacing16),
                     verticalArrangement = Arrangement.spacedBy(AppDimensions.spacing16)
                 ) {
-                    if (currentState.registeredShuttles.isNotEmpty()) {
+                    val activeDevice = currentState.activeDeviceId?.let { id ->
+                        currentState.registeredShuttles.find { it.deviceId == id } ?: currentState.discoveredShuttles.find { it.deviceId == id }
+                    }
+
+                    if (activeDevice != null) {
                         item {
+                            Text(
+                                "Active Shuttle",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = AppColors.Success
+                            )
+                        }
+                        item {
+                            Row(modifier = Modifier.fillMaxWidth()) {
+                                val isRegistered = currentState.registeredShuttles.any { it.deviceId == activeDevice.deviceId }
+                                ShuttleItemCard(
+                                    shuttle = activeDevice,
+                                    isRegistered = isRegistered,
+                                    isActive = true,
+                                    onAction = { 
+                                        if (isRegistered) {
+                                            viewModel.onEvent(ShuttleUiEvent.OnUnregisterShuttle(activeDevice.deviceId))
+                                        } else {
+                                            viewModel.onEvent(ShuttleUiEvent.OnRegisterShuttle(activeDevice))
+                                        }
+                                    },
+                                    onConnect = { }, // already active, connect button will be hidden inside ShuttleItemCard
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Spacer(modifier = Modifier.weight(1f)) // keep standard sizing
+                            }
+                        }
+                    }
+
+                    val filteredRegistered = currentState.registeredShuttles.filter { it.deviceId != currentState.activeDeviceId }
+                    if (filteredRegistered.isNotEmpty()) {
+                        item {
+                            Spacer(modifier = Modifier.height(AppDimensions.spacing8))
                             Text(
                                 "Registered Shuttles",
                                 style = MaterialTheme.typography.titleMedium,
@@ -107,7 +144,7 @@ fun ShuttleManagementScreen(
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
-                        val rows = currentState.registeredShuttles.chunked(2)
+                        val rows = filteredRegistered.chunked(2)
                         items(rows) { rowShuttles ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -117,9 +154,9 @@ fun ShuttleManagementScreen(
                                     ShuttleItemCard(
                                         shuttle = shuttle,
                                         isRegistered = true,
-                                        isActive = currentState.activeDeviceId == shuttle.deviceId,
+                                        isActive = false,
                                         onAction = { viewModel.onEvent(ShuttleUiEvent.OnUnregisterShuttle(shuttle.deviceId)) },
-                                        onConnect = { viewModel.onEvent(ShuttleUiEvent.OnConnectShuttle(shuttle.deviceId)) },
+                                        onConnect = { viewModel.onEvent(ShuttleUiEvent.OnConnectShuttle(shuttle.deviceId, shuttle.serialNumber.removePrefix("WS-DIRECT-"))) },
                                         modifier = Modifier.weight(1f)
                                     )
                                 }
@@ -130,7 +167,8 @@ fun ShuttleManagementScreen(
                         }
                     }
 
-                    if (currentState.discoveredShuttles.isNotEmpty()) {
+                    val filteredDiscovered = currentState.discoveredShuttles.filter { it.deviceId != currentState.activeDeviceId }
+                    if (filteredDiscovered.isNotEmpty()) {
                         item {
                             Spacer(modifier = Modifier.height(AppDimensions.spacing8))
                             Text(
@@ -140,7 +178,7 @@ fun ShuttleManagementScreen(
                                 color = MaterialTheme.colorScheme.secondary
                             )
                         }
-                        val rows = currentState.discoveredShuttles.chunked(2)
+                        val rows = filteredDiscovered.chunked(2)
                         items(rows) { rowShuttles ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -163,7 +201,7 @@ fun ShuttleManagementScreen(
                         }
                     }
 
-                    if (currentState.registeredShuttles.isEmpty() && currentState.discoveredShuttles.isEmpty()) {
+                    if (currentState.registeredShuttles.isEmpty() && filteredDiscovered.isEmpty()) {
                         item {
                             Box(
                                 modifier = Modifier.fillMaxWidth().padding(top = 32.dp),
@@ -333,14 +371,6 @@ fun ShuttleItemCard(
                 if (isRegistered) {
                     IconButton(onClick = onAction, modifier = Modifier.size(36.dp)) {
                         Icon(Icons.Default.Delete, contentDescription = "Unregister Device", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
-                    }
-                } else {
-                    Button(
-                        onClick = onAction,
-                        shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Text("Add Device", style = MaterialTheme.typography.labelMedium)
                     }
                 }
             }

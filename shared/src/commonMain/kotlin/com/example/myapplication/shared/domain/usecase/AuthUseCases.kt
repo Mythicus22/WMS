@@ -8,6 +8,8 @@ import com.example.myapplication.shared.domain.model.SettingPermission
 import com.example.myapplication.shared.domain.model.User
 import com.example.myapplication.shared.domain.model.UserRole
 import com.example.myapplication.shared.domain.repository.IUserRepository
+import com.example.myapplication.shared.database.AppDatabase
+import com.example.myapplication.shared.features.settings.repository.SettingsRepository
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -68,10 +70,20 @@ class LoginUseCase(
  * UseCase for ending the user session.
  */
 class LogoutUseCase(
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val database: AppDatabase,
+    private val settingsRepository: SettingsRepository
 ) {
     operator fun invoke() {
         sessionManager.clearSession()
+        database.transaction {
+            database.appDatabaseQueries.deleteAllSettings()
+            database.appDatabaseQueries.deleteAllRegisteredShuttles()
+            database.appDatabaseQueries.deleteAllActiveShuttles()
+            database.appDatabaseQueries.deleteAllDeviceAliases()
+        }
+        
+        settingsRepository.resetSettings()
     }
 }
 

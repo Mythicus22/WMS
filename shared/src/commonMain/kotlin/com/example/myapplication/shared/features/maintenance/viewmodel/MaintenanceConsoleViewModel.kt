@@ -63,4 +63,19 @@ class MaintenanceConsoleViewModel(
             }
         }
     }
+
+    fun refreshData() {
+        val currentShuttle = _uiState.value.shuttle
+        if (currentShuttle == null || _uiState.value.isMockData) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                kotlinx.coroutines.delay(1000) // Simulate fetch time for static tests
+                _uiState.update { it.copy(tests = getMaintenanceTestsUseCase()) }
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
+            }
+        }
+    }
 }

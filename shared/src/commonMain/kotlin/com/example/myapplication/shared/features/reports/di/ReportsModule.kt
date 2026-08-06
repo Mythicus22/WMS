@@ -6,9 +6,9 @@ import com.example.myapplication.shared.features.reports.viewmodel.ReportsViewMo
 import org.koin.dsl.module
 
 val reportsModule = module {
-    single<ReportsRepository>  { ReportsRepositoryImpl(get()) }
+    single<ReportsRepository>  { ReportsRepositoryImpl(get(), get()) }
     single<AnalyticsRepository> { AnalyticsRepositoryImpl(get()) }
-    single<ExportRepository>   { ExportRepositoryImpl() }
+    single<ExportRepository>   { ExportRepositoryImpl(get()) }
 
     factory { GetSummaryUseCase(get()) }
     factory { GetStoreOperationsUseCase(get()) }

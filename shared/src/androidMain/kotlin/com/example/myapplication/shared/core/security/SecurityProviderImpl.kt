@@ -3,7 +3,7 @@ package com.example.myapplication.shared.core.security
 import org.bouncycastle.crypto.generators.Argon2BytesGenerator
 import org.bouncycastle.crypto.params.Argon2Parameters
 import java.security.SecureRandom
-import java.util.Base64
+import android.util.Base64
 
 class SecurityProviderImpl : SecurityProvider {
     
@@ -30,8 +30,8 @@ class SecurityProviderImpl : SecurityProvider {
         val result = ByteArray(hashLength)
         generate.generateBytes(password.toByteArray(Charsets.UTF_8), result, 0, result.size)
         
-        val saltBase64 = Base64.getEncoder().withoutPadding().encodeToString(salt)
-        val hashBase64 = Base64.getEncoder().withoutPadding().encodeToString(result)
+        val saltBase64 = Base64.encodeToString(salt, Base64.NO_WRAP or Base64.NO_PADDING)
+        val hashBase64 = Base64.encodeToString(result, Base64.NO_WRAP or Base64.NO_PADDING)
         
         // Return standard encoded string: $argon2id$v=19$m=65536,t=3,p=4$<salt>$<hash>
         return "\$argon2id\$v=19\$m=$memLimit,t=$iterations,p=$parallelism\$$saltBase64\$$hashBase64"
@@ -56,7 +56,7 @@ class SecurityProviderImpl : SecurityProvider {
                 }
             }
             
-            val salt = Base64.getDecoder().decode(parts[4])
+            val salt = Base64.decode(parts[4], Base64.NO_WRAP or Base64.NO_PADDING)
             val expectedHashBase64 = parts[5]
             
             val builder = Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
@@ -72,7 +72,7 @@ class SecurityProviderImpl : SecurityProvider {
             val result = ByteArray(hashLength)
             generate.generateBytes(password.toByteArray(Charsets.UTF_8), result, 0, result.size)
             
-            val resultBase64 = Base64.getEncoder().withoutPadding().encodeToString(result)
+            val resultBase64 = Base64.encodeToString(result, Base64.NO_WRAP or Base64.NO_PADDING)
             return resultBase64 == expectedHashBase64
         } catch (e: Exception) {
             return false

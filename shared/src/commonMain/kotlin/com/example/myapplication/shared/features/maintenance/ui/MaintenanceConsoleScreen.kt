@@ -25,8 +25,11 @@ import androidx.compose.material.icons.filled.PrecisionManufacturing
 import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -63,14 +66,24 @@ fun MaintenanceConsoleScreen(
     ) {
         AppToolbar(
             title = "Maintenance Console: $shuttleTitle",
-            onNavigationClick = { navigator.goBack() }
+            onNavigationClick = { navigator.goBack() },
+            actions = {
+                IconButton(onClick = { viewModel.refreshData() }) {
+                    Icon(Icons.Default.Refresh, contentDescription = "Refresh", tint = MaterialTheme.colorScheme.onPrimary)
+                }
+            }
         )
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(AppDimensions.spacing16)
-        ) {
+        if (state.isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(AppDimensions.spacing16)
+            ) {
             if (state.isMockData) {
                 Row(modifier = Modifier.fillMaxWidth().background(com.example.myapplication.shared.presentation.theme.AppColors.Warning.copy(alpha = 0.2f)).padding(8.dp), horizontalArrangement = Arrangement.Center) {
                     Text("No Active Shuttle - Showing Mock Data", color = com.example.myapplication.shared.presentation.theme.AppColors.Warning, fontWeight = FontWeight.Bold)
@@ -113,6 +126,7 @@ fun MaintenanceConsoleScreen(
             }
         }
     }
+}
 }
 
 @Composable

@@ -57,6 +57,9 @@ SELECT * FROM DeviceAliasEntity;
 deleteDeviceAlias:
 DELETE FROM DeviceAliasEntity WHERE deviceId = ?;
 
+deleteAllDeviceAliases:
+DELETE FROM DeviceAliasEntity;
+
 CREATE TABLE RegisteredShuttleEntity (
     deviceId TEXT PRIMARY KEY NOT NULL,
     serialNumber TEXT NOT NULL,
@@ -83,3 +86,41 @@ DELETE FROM RegisteredShuttleEntity WHERE deviceId = ?;
 
 deleteAllRegisteredShuttles:
 DELETE FROM RegisteredShuttleEntity;
+
+CREATE TABLE SettingsEntity (
+    id TEXT PRIMARY KEY NOT NULL,
+    jsonValue TEXT NOT NULL,
+    updatedAt INTEGER NOT NULL
+);
+
+insertSetting:
+INSERT OR REPLACE INTO SettingsEntity(id, jsonValue, updatedAt)
+VALUES (?, ?, ?);
+
+getSettingById:
+SELECT * FROM SettingsEntity WHERE id = ?;
+
+deleteSettingById:
+DELETE FROM SettingsEntity WHERE id = ?;
+
+deleteAllSettings:
+DELETE FROM SettingsEntity;
+
+CREATE TABLE ActiveShuttleEntity (
+    id TEXT PRIMARY KEY NOT NULL,
+    deviceId TEXT NOT NULL,
+    updatedAt INTEGER NOT NULL
+);
+
+insertActiveShuttle:
+INSERT OR REPLACE INTO ActiveShuttleEntity(id, deviceId, updatedAt)
+VALUES (?, ?, ?);
+
+getActiveShuttle:
+SELECT * FROM ActiveShuttleEntity WHERE id = ?;
+
+deleteActiveShuttle:
+DELETE FROM ActiveShuttleEntity WHERE id = ?;
+
+deleteAllActiveShuttles:
+DELETE FROM ActiveShuttleEntity;

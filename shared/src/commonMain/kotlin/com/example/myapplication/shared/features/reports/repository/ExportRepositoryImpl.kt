@@ -4,18 +4,19 @@ import com.example.myapplication.shared.features.reports.model.*
 import io.github.aakira.napier.Napier
 import java.io.File
 
-class ExportRepositoryImpl : ExportRepository {
+class ExportRepositoryImpl(
+    private val platformFileExporter: PlatformFileExporter
+) : ExportRepository {
 
     override suspend fun export(config: ExportConfig, data: AllReportData): ExportResult {
         Napier.d("Starting export: ${config.format} for shuttle=${config.shuttleId}", tag = "ExportRepo")
         return try {
-            val dir = File(config.outputDirectory).also { if (!it.exists()) it.mkdirs() }
             val ts  = System.currentTimeMillis().toString()
             val safeName = config.shuttleName.replace(" ", "_")
             when (config.format) {
-                ExportFormat.CSV  -> exportCsv(dir, ts, safeName, config, data)
-                ExportFormat.XLSX -> exportXlsx(dir, ts, safeName, config, data)
-                ExportFormat.PDF  -> exportPdf(dir, ts, safeName, config, data)
+                ExportFormat.CSV  -> exportCsv(config.outputDirectory, ts, safeName, config, data)
+                ExportFormat.XLSX -> exportXlsx(config.outputDirectory, ts, safeName, config, data)
+                ExportFormat.PDF  -> exportPdf(config.outputDirectory, ts, safeName, config, data)
             }
         } catch (e: Exception) {
             Napier.e("Export failed", e, tag = "ExportRepo")
@@ -24,9 +25,10 @@ class ExportRepositoryImpl : ExportRepository {
     }
 
     // ── CSV → ZIP ─────────────────────────────────────────────────────────────
-    private fun exportCsv(dir: File, ts: String, name: String, config: ExportConfig, data: AllReportData): ExportResult {
-        val zipFile = File(dir, "WMS_Report_${name}_${ts}.zip")
-        java.util.zip.ZipOutputStream(zipFile.outputStream()).use { zip ->
+    private suspend fun exportCsv(dirUri: String, ts: String, name: String, config: ExportConfig, data: AllReportData): ExportResult {
+        val fileName = "WMS_Report_${name}_${ts}.zip"
+        val outStream = java.io.ByteArrayOutputStream()
+        java.util.zip.ZipOutputStream(outStream).use { zip ->
             fun addEntry(fileName: String, content: String) {
                 zip.putNextEntry(java.util.zip.ZipEntry(fileName))
                 zip.write(content.toByteArray())
@@ -44,37 +46,52 @@ class ExportRepositoryImpl : ExportRepository {
             addEntry("maintenance_history.csv", maintenanceToCsv(data.maintenance))
             addEntry("productivity.csv",        productivityToCsv(data.productivity))
         }
-        return ExportResult(true, zipFile.absolutePath, zipFile.name, zipFile.length() / 1024, "CSV export completed: ${zipFile.name}", ts)
+        
+        val bytes = outStream.toByteArray()
+        val path = platformFileExporter.exportFile(dirUri, fileName, "application/zip", bytes)
+        return ExportResult(true, path, fileName, (bytes.size / 1024).toLong(), "CSV export completed: $fileName", ts)
     }
 
     // ── XLSX (text-based tsv in .xlsx wrapper) ───────────────────────────────
-    private fun exportXlsx(dir: File, ts: String, name: String, config: ExportConfig, data: AllReportData): ExportResult {
-        val file = File(dir, "WMS_Report_${name}_${ts}.xlsx")
-        // Write as tab-separated plain text (real XLSX needs Apache POI, not on KMP common)
+    private suspend fun exportXlsx(dirUri: String, ts: String, name: String, config: ExportConfig, data: AllReportData): ExportResult {
+        val fileName = "WMS_Report_${name}_${ts}.xls"
+        
+        // Write SpreadsheetML format which opens nicely with tabs in Excel
         val sb = StringBuilder()
-        sb.appendLine("=== WMS OPERATIONAL REPORT ===")
-        sb.appendLine("Period: ${config.startDate} — ${config.endDate}")
-        sb.appendLine("Shuttle: ${config.shuttleName}")
-        sb.appendLine()
-        sb.appendLine("--- SUMMARY ---")
-        sb.appendLine(summaryToCsv(data.summary))
-        sb.appendLine("--- STORE OPERATIONS ---")
-        sb.appendLine(operationsToCsv(data.storeOps))
-        sb.appendLine("--- RETRIEVE OPERATIONS ---")
-        sb.appendLine(operationsToCsv(data.retrieveOps))
-        sb.appendLine("--- TASK HISTORY ---")
-        sb.appendLine(tasksToCsv(data.tasks))
-        sb.appendLine("--- FAULT HISTORY ---")
-        sb.appendLine(faultsToCsv(data.faults))
-        sb.appendLine("--- PRODUCTIVITY ---")
-        sb.appendLine(productivityToCsv(data.productivity))
-        file.writeText(sb.toString())
-        return ExportResult(true, file.absolutePath, file.name, file.length() / 1024, "Excel report exported: ${file.name}", ts)
+        sb.appendLine("<?xml version=\"1.0\"?>\n<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\" xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\">")
+        
+        fun addSheet(sheetName: String, csvContent: String) {
+            sb.appendLine("<Worksheet ss:Name=\"$sheetName\"><Table>")
+            val lines = csvContent.lines().filter { it.isNotBlank() }
+            for (line in lines) {
+                sb.appendLine("<Row>")
+                val cols = line.split(",")
+                for (col in cols) {
+                    sb.appendLine("<Cell><Data ss:Type=\"String\">${col.replace("<","&lt;").replace(">","&gt;")}</Data></Cell>")
+                }
+                sb.appendLine("</Row>")
+            }
+            sb.appendLine("</Table></Worksheet>")
+        }
+        
+        addSheet("Summary", summaryToCsv(data.summary))
+        addSheet("Store Ops", operationsToCsv(data.storeOps))
+        addSheet("Retrieve Ops", operationsToCsv(data.retrieveOps))
+        addSheet("Tasks", tasksToCsv(data.tasks))
+        addSheet("Faults", faultsToCsv(data.faults))
+        addSheet("Productivity", productivityToCsv(data.productivity))
+        
+        sb.appendLine("</Workbook>")
+        
+        val bytes = sb.toString().toByteArray()
+        val path = platformFileExporter.exportFile(dirUri, fileName, "application/vnd.ms-excel", bytes)
+        
+        return ExportResult(true, path, fileName, (bytes.size / 1024).toLong(), "Excel report exported: $fileName", ts)
     }
 
     // ── PDF (plain-text structured report) ───────────────────────────────────
-    private fun exportPdf(dir: File, ts: String, name: String, config: ExportConfig, data: AllReportData): ExportResult {
-        val file = File(dir, "WMS_Report_${name}_${ts}.pdf")
+    private suspend fun exportPdf(dirUri: String, ts: String, name: String, config: ExportConfig, data: AllReportData): ExportResult {
+        val fileName = "WMS_Report_${name}_${ts}.pdf"
         val sb = StringBuilder()
         sb.appendLine("================================================================================")
         sb.appendLine("                    WMS OPERATIONAL REPORT — PDF")
@@ -100,8 +117,9 @@ class ExportRepositoryImpl : ExportRepository {
         section("9. FAULT HISTORY",        faultsToCsv(data.faults))
         section("10. MAINTENANCE HISTORY", maintenanceToCsv(data.maintenance))
         section("11. PRODUCTIVITY",        productivityToCsv(data.productivity))
-        file.writeText(sb.toString())
-        return ExportResult(true, file.absolutePath, file.name, file.length() / 1024, "PDF report exported: ${file.name}", ts)
+        
+        val bytes = platformFileExporter.exportFile(dirUri, fileName, "application/pdf", sb.toString().toByteArray()) // For now, export as raw text with pdf extension, wait, I'll pass a special command for PDF if needed. No, I will use Android Native PDF Document generation in `AndroidPlatformFileExporter` if I intercept the mime type!
+        return ExportResult(true, bytes, fileName, (sb.toString().toByteArray().size / 1024).toLong(), "PDF report exported: $fileName", ts)
     }
 
     // ── CSV helpers ───────────────────────────────────────────────────────────

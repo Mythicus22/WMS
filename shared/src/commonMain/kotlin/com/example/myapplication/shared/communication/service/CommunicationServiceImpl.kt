@@ -3,6 +3,7 @@ package com.example.myapplication.shared.communication.service
 import com.example.myapplication.shared.communication.model.*
 import com.example.myapplication.shared.communication.transport.DirectTransport
 import com.example.myapplication.shared.communication.transport.MqttTransport
+import com.example.myapplication.shared.database.AppDatabase
 import com.example.myapplication.shared.features.settings.model.CommunicationMode
 import com.example.myapplication.shared.features.settings.model.CommunicationSettings
 import io.github.aakira.napier.Napier
@@ -11,8 +12,12 @@ import kotlinx.coroutines.flow.*
 
 class CommunicationServiceImpl(
     private val mqttTransport: MqttTransport,
-    private val directTransport: DirectTransport
+    private val directTransport: DirectTransport,
+    private val database: AppDatabase
 ) : CommunicationService {
+
+    private val queries = database.appDatabaseQueries
+    private val ACTIVE_SHUTTLE_ID = "active_shuttle_1"
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -50,6 +55,15 @@ class CommunicationServiceImpl(
 
     init {
         observeTransportState(currentTransport)
+        
+        // Restore active shuttle on startup
+        scope.launch {
+            val entity = queries.getActiveShuttle(ACTIVE_SHUTTLE_ID).executeAsOneOrNull()
+            if (entity != null) {
+                _activeDevice.value = entity.deviceId
+                currentTransport.setActiveDevice(entity.deviceId, null)
+            }
+        }
     }
 
     private fun observeTransportState(transport: CommunicationTransport) {
@@ -90,6 +104,19 @@ class CommunicationServiceImpl(
 
     override suspend fun setActiveDevice(deviceId: String?, ipAddress: String?) {
         currentTransport.setActiveDevice(deviceId, ipAddress)
+        if (deviceId != null) {
+            scope.launch {
+                queries.insertActiveShuttle(
+                    id = ACTIVE_SHUTTLE_ID,
+                    deviceId = deviceId,
+                    updatedAt = System.currentTimeMillis()
+                )
+            }
+        } else {
+            scope.launch {
+                queries.deleteActiveShuttle(ACTIVE_SHUTTLE_ID)
+            }
+        }
     }
 
     override suspend fun subscribeToDiscovery() {
@@ -104,6 +131,7 @@ class CommunicationServiceImpl(
     override fun observeStatus(deviceId: String): Flow<WspStatusPayload> = currentTransport.observeStatus(deviceId)
     override fun observeTelemetry(deviceId: String): Flow<WspTelemetryPayload> = currentTransport.observeTelemetry(deviceId)
     override fun observeDiagnostics(deviceId: String): Flow<WspDiagnosticsPayload> = currentTransport.observeDiagnostics(deviceId)
+    override fun observeReports(deviceId: String): Flow<WspReportsPayload> = currentTransport.observeReports(deviceId)
     override fun observeFaults(deviceId: String): Flow<WspFaultPayload> = currentTransport.observeFaults(deviceId)
     override fun observeHeartbeats(deviceId: String): Flow<WspHeartbeatPayload> = currentTransport.observeHeartbeats(deviceId)
     override fun observeResponses(deviceId: String): Flow<WspResponsePayload> = currentTransport.observeResponses(deviceId)

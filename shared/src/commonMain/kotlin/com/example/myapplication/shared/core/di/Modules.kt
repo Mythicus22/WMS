@@ -28,12 +28,12 @@ import org.koin.dsl.module
 
 val coreModule = module {
     single { AppDatabase(get<DriverFactory>().createDriver()) }
-    single { SessionManager() }
+    single { SessionManager(get(), get()) }
     single<IUserRepository> { UserRepositoryImpl(get()) }
 
     // UseCases
     factory { LoginUseCase(get(), get(), get(), get()) }
-    factory { LogoutUseCase(get()) }
+    factory { LogoutUseCase(get(), get(), get()) }
     factory { GetCurrentUserUseCase(get()) }
     factory { ManageUsersUseCase(get(), get(), get()) }
 

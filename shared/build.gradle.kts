@@ -44,6 +44,7 @@ kotlin {
             implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
             implementation(libs.bouncycastle)
             implementation(libs.androidx.security.crypto)
+            implementation("androidx.documentfile:documentfile:1.0.1")
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)

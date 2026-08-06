@@ -242,18 +242,21 @@ fun DashboardScreen(
                                 onClick = {
                                     when (feature) {
                                         FeaturePermission.OPERATOR -> {
-                                            if (currentState.activeDeviceId != null) navigator.navigateTo(Screen.OperatorConsole)
+                                            if (currentState.activeDeviceId != null && currentState.isConnected) navigator.navigateTo(Screen.OperatorConsole)
                                             else showNoShuttleDialog.value = true
                                         }
                                         FeaturePermission.DIAGNOSTICS -> {
-                                            if (currentState.activeDeviceId != null) navigator.navigateTo(Screen.DiagnosticsDashboard)
+                                            if (currentState.activeDeviceId != null && currentState.isConnected) navigator.navigateTo(Screen.DiagnosticsDashboard)
                                             else showNoShuttleDialog.value = true
                                         }
                                         FeaturePermission.MAINTENANCE -> {
-                                            if (currentState.activeDeviceId != null) navigator.navigateTo(Screen.MaintenanceConsole)
+                                            if (currentState.activeDeviceId != null && currentState.isConnected) navigator.navigateTo(Screen.MaintenanceConsole)
                                             else showNoShuttleDialog.value = true
                                         }
-                                        FeaturePermission.REPORTS -> navigator.navigateTo(Screen.ReportsShuttleSelect)
+                                        FeaturePermission.REPORTS -> {
+                                            if (currentState.activeDeviceId != null && currentState.isConnected) navigator.navigateTo(Screen.ReportsShuttleSelect)
+                                            else showNoShuttleDialog.value = true
+                                        }
                                         FeaturePermission.SETTINGS -> navigator.navigateTo(Screen.Settings)
                                         FeaturePermission.USER_MANAGEMENT -> navigator.navigateTo(Screen.UserManagement)
                                         FeaturePermission.SHUTTLE_MANAGEMENT -> navigator.navigateTo(Screen.Shuttle)

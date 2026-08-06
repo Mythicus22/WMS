@@ -19,8 +19,14 @@ data class DashboardUiState(
     val totalDiscoveredDevices: Long = 0,
     val onlineDiscoveredDevices: Long = 0,
     val offlineDiscoveredDevices: Long = 0,
-    val activeDeviceId: String? = null
-)
+    val activeDeviceId: String? = null,
+    val connectionState: com.example.myapplication.shared.communication.service.ConnectionState = com.example.myapplication.shared.communication.service.ConnectionState.DISCONNECTED
+) {
+    val isConnected: Boolean
+        get() = connectionState == com.example.myapplication.shared.communication.service.ConnectionState.CONNECTED || 
+                connectionState == com.example.myapplication.shared.communication.service.ConnectionState.READY ||
+                connectionState == com.example.myapplication.shared.communication.service.ConnectionState.SUBSCRIBED
+}
 
 sealed interface DashboardUiEvent : UiEvent {
     object OnLogoutClicked : DashboardUiEvent
@@ -65,6 +71,11 @@ class DashboardViewModel(
             val currentState = uiState.value ?: DashboardUiState()
             setState(currentState.copy(activeDeviceId = deviceId))
         }.launchIn(viewModelScope)
+        
+        communicationService.connectionState.onEach { state ->
+            val currentState = uiState.value ?: DashboardUiState()
+            setState(currentState.copy(connectionState = state))
+        }.launchIn(viewModelScope)
     }
 
     private fun observeDeviceCounts() {
@@ -86,7 +97,8 @@ class DashboardViewModel(
                 emptyList()
             }
 
-            setState(DashboardUiState(currentUser = user, availableFeatures = features))
+            val currentState = uiState.value ?: DashboardUiState()
+            setState(currentState.copy(currentUser = user, availableFeatures = features))
         }.launchIn(viewModelScope)
     }
 

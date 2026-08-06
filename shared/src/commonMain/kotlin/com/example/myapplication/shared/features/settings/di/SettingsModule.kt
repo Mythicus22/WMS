@@ -13,7 +13,7 @@ import com.example.myapplication.shared.features.settings.viewmodel.SettingsView
 import org.koin.dsl.module
 
 val settingsModule = module {
-    single<SettingsRepository> { SettingsRepositoryImpl() }
+    single<SettingsRepository> { SettingsRepositoryImpl(get(), get()) }
 
     factory { GetSettingsUseCase(get()) }
     factory { UpdateGeneralSettingsUseCase(get()) }

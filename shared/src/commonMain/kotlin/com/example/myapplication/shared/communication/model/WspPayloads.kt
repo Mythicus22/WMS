@@ -165,6 +165,141 @@ data class WspRadioDiagnostics(
 )
 
 @Serializable
+data class WspReportsPayload(
+    val deviceId: String,
+    val timestamp: Long,
+    val summary: WspReportSummary,
+    val storeOperations: List<WspStoreOperationRecord>,
+    val retrieveOperations: List<WspRetrieveOperationRecord>,
+    val productivity: WspProductivityRecord,
+    val taskHistory: List<WspTaskRecord> = emptyList(),
+    val missionHistory: List<WspMissionRecord> = emptyList(),
+    val utilization: List<WspUtilizationRecord> = emptyList(),
+    val batteryReport: List<WspBatteryRecord> = emptyList(),
+    val motorRuntime: List<WspMotorRuntimeRecord> = emptyList(),
+    val faultHistory: List<WspFaultRecord> = emptyList(),
+    val maintenanceHistory: List<WspMaintenanceRecord> = emptyList()
+)
+
+@Serializable
+data class WspReportSummary(
+    val totalStoreOperations: Int,
+    val totalRetrieveOperations: Int,
+    val totalTasksCompleted: Int,
+    val totalFaults: Int,
+    val avgBatteryLevel: Float,
+    val avgProductivity: Float,
+    val activeFaults: Int
+)
+
+@Serializable
+data class WspStoreOperationRecord(
+    val id: String,
+    val location: String,
+    val timeTakenSec: Int,
+    val status: String,
+    val timestamp: String
+)
+
+@Serializable
+data class WspRetrieveOperationRecord(
+    val id: String,
+    val location: String,
+    val timeTakenSec: Int,
+    val status: String,
+    val timestamp: String
+)
+
+@Serializable
+data class WspProductivityRecord(
+    val completed: Int,
+    val failed: Int,
+    val efficiencyPercentage: Float
+)
+
+@Serializable
+data class WspTaskRecord(
+    val id: String,
+    val type: String,
+    val priority: String,
+    val status: String,
+    val createdTime: String,
+    val completedTime: String,
+    val durationSec: Int
+)
+
+@Serializable
+data class WspMissionRecord(
+    val id: String,
+    val type: String,
+    val totalTasks: Int,
+    val status: String,
+    val distanceTraveled: Float,
+    val startTime: String,
+    val endTime: String,
+    val faultsEncountered: Int
+)
+
+@Serializable
+data class WspUtilizationRecord(
+    val date: String,
+    val activeHours: Float,
+    val idleHours: Float,
+    val utilizationPercentage: Float,
+    val tasksCompleted: Int,
+    val distanceTraveled: Float
+)
+
+@Serializable
+data class WspBatteryRecord(
+    val id: String,
+    val timestamp: String,
+    val endPercentage: Float,
+    val endVoltage: Float,
+    val endCurrent: Float,
+    val endTemperature: Float,
+    val dischargeTimeMin: Int,
+    val status: String
+)
+
+@Serializable
+data class WspMotorRuntimeRecord(
+    val id: String,
+    val date: String,
+    val driveMotorHours: Float,
+    val liftMotorHours: Float,
+    val driveMotorStarts: Int,
+    val liftMotorStarts: Int,
+    val avgDriveTemp: Float,
+    val avgLiftTemp: Float
+)
+
+@Serializable
+data class WspFaultRecord(
+    val id: String,
+    val faultCode: String,
+    val faultType: String,
+    val severity: String,
+    val description: String,
+    val timeOccurred: String,
+    val timeResolved: String?,
+    val resolvedBy: String?,
+    val downtimeMin: Int
+)
+
+@Serializable
+data class WspMaintenanceRecord(
+    val id: String,
+    val type: String,
+    val technician: String,
+    val date: String,
+    val durationMin: Int,
+    val partsReplaced: List<String>,
+    val notes: String,
+    val nextScheduledDate: String
+)
+
+@Serializable
 data class WspEmergencyStopDiagnostics(
     val active: Boolean,
     val lastTriggered: Long,

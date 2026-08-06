@@ -23,6 +23,7 @@ data class OperatorConsoleUiState(
     val liveStatus: ShuttleLiveStatus = ShuttleLiveStatus(shuttleId = ""),
     val isCommandExecuting: Boolean = false,
     val commandFeedback: String? = null,
+    val isLoading: Boolean = false,
     val isMockData: Boolean = false,
     val activeFaults: List<ShuttleFault> = emptyList()
 )
@@ -31,6 +32,7 @@ sealed class OperatorConsoleEvent {
     data class ExecuteCommand(val command: ShuttleCommandType) : OperatorConsoleEvent()
     data class ClearFault(val faultId: String) : OperatorConsoleEvent()
     object DismissFeedback : OperatorConsoleEvent()
+    object RefreshData : OperatorConsoleEvent()
 }
 
 class OperatorConsoleViewModel(
@@ -47,8 +49,19 @@ class OperatorConsoleViewModel(
         viewModelScope.launch {
             communicationService.activeDevice.collect { deviceId ->
                 if (deviceId != null) {
-                    _uiState.update { it.copy(shuttleId = deviceId, isMockData = false) }
-                    observeDevice(deviceId)
+                    val fakeShuttle = DiscoveredDevice(
+                        deviceId = deviceId,
+                        displayName = "Shuttle $deviceId",
+                        serialNumber = "SN-$deviceId",
+                        protocolVersion = "1.0",
+                        firmwareVersion = "1.0",
+                        hardwareVersion = "mock",
+                        manufacturer = "mock",
+                        status = "ONLINE",
+                        lastSeenAt = 0L
+                    )
+                    _uiState.update { it.copy(shuttleId = deviceId, shuttle = fakeShuttle, isMockData = false) }
+                    // Do not auto-observe, wait for explicit refresh
                 } else {
                     // Fallback Mock Data
                     _uiState.update { 
@@ -105,6 +118,25 @@ class OperatorConsoleViewModel(
             }
             is OperatorConsoleEvent.DismissFeedback -> {
                 _uiState.update { it.copy(commandFeedback = null) }
+            }
+            is OperatorConsoleEvent.RefreshData -> refreshData()
+        }
+    }
+
+    private fun refreshData() {
+        val currentDiscoveredDeviceId = _uiState.value.shuttleId
+        if (currentDiscoveredDeviceId.isBlank() || _uiState.value.isMockData) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                kotlinx.coroutines.withTimeout(5000) {
+                    observeDevice(currentDiscoveredDeviceId)
+                }
+            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                // Ignore timeout, we just stop the loader
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }

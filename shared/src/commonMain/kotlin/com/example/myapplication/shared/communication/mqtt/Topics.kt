@@ -11,6 +11,7 @@ object Topics {
     fun status(deviceId: String): String = "$PREFIX/$deviceId/status"
     fun telemetry(deviceId: String): String = "$PREFIX/$deviceId/telemetry"
     fun diagnostics(deviceId: String): String = "$PREFIX/$deviceId/diagnostics"
+    fun reports(deviceId: String): String = "$PREFIX/$deviceId/reports"
     fun maintenanceRequest(deviceId: String): String = "$PREFIX/$deviceId/maintenance/request"
     fun maintenanceResult(deviceId: String): String = "$PREFIX/$deviceId/maintenance/result"
     fun fault(deviceId: String): String = "$PREFIX/$deviceId/fault"

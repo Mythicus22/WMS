@@ -64,6 +64,7 @@ sealed interface SettingsUiEvent {
     data class UpdateBackup(val backup: BackupSettings) : SettingsUiEvent
     data class PerformBackup(val destinationPath: String) : SettingsUiEvent
     data class PerformRestore(val backupId: String) : SettingsUiEvent
+    data class ResetToDefault(val tab: SettingsTab) : SettingsUiEvent
     data class OnTestConnection(val comm: CommunicationSettings) : SettingsUiEvent
     object OnDisconnect : SettingsUiEvent
     object DismissStatusMessage : SettingsUiEvent
@@ -254,6 +255,26 @@ class SettingsViewModel(
                 viewModelScope.launch {
                     communicationService.connect(event.comm)
                 }
+            }
+
+            is SettingsUiEvent.ResetToDefault -> {
+                val defaults = AppSettings()
+                when (event.tab) {
+                    SettingsTab.GENERAL -> {
+                        _uiState.update { curr -> curr.copy(settings = curr.settings.copy(general = defaults.general)) }
+                    }
+                    SettingsTab.COMMUNICATION -> {
+                        _uiState.update { curr -> curr.copy(settings = curr.settings.copy(communication = defaults.communication)) }
+                    }
+                    SettingsTab.REPORTS -> {
+                        _uiState.update { curr -> curr.copy(settings = curr.settings.copy(reports = defaults.reports)) }
+                    }
+                    SettingsTab.BACKUP -> {
+                        _uiState.update { curr -> curr.copy(settings = curr.settings.copy(backup = defaults.backup)) }
+                    }
+                    SettingsTab.ABOUT -> {} // No defaults for About
+                }
+                // Do not auto-save. Just populate the draft. The user can still click save or cancel.
             }
 
             is SettingsUiEvent.OnDisconnect -> {

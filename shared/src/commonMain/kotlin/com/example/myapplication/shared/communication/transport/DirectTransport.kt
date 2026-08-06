@@ -17,6 +17,7 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.network.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -79,10 +80,11 @@ class DirectTransport : CommunicationTransport {
     private val _discoveryFlow = MutableSharedFlow<WspInfoPayload>(extraBufferCapacity = 10)
     private var discoveryJob: Job? = null
 
-    private val _statusFlow = MutableSharedFlow<WspStatusPayload>(extraBufferCapacity = 10)
-    private val _telemetryFlow = MutableSharedFlow<WspTelemetryPayload>(extraBufferCapacity = 10)
-    private val _diagnosticsFlow = MutableSharedFlow<WspDiagnosticsPayload>(extraBufferCapacity = 10)
-    private val _faultsFlow = MutableSharedFlow<WspFaultPayload>(extraBufferCapacity = 10)
+    private val _statusFlow = MutableSharedFlow<WspStatusPayload>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    private val _telemetryFlow = MutableSharedFlow<WspTelemetryPayload>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    private val _diagnosticsFlow = MutableSharedFlow<WspDiagnosticsPayload>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    private val _reportsFlow = MutableSharedFlow<WspReportsPayload>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    private val _faultsFlow = MutableSharedFlow<WspFaultPayload>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     private val _heartbeatsFlow = MutableSharedFlow<WspHeartbeatPayload>(extraBufferCapacity = 10)
     private val _responsesFlow = MutableSharedFlow<WspResponsePayload>(extraBufferCapacity = 10)
 
@@ -93,7 +95,7 @@ class DirectTransport : CommunicationTransport {
     override suspend fun connect(settings: CommunicationSettings) {
         currentSettings = settings
         _connectionState.value = ConnectionState.CONNECTING
-        logEvent("DirectTransport initialized with allowed IPs: ${settings.allowedShuttleIps}")
+        logEvent("connecting to ${settings.allowedShuttleIps}")
         
         _connectionState.value = ConnectionState.CONNECTED
         _lastConnectedTime.value = kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
@@ -145,10 +147,12 @@ class DirectTransport : CommunicationTransport {
         val settings = currentSettings ?: return
 
         activeWebSocketJob = scope.launch {
-            logEvent("Connecting to active device $deviceId at ws://$ipAddress:${settings.directWebSocketPort}")
+            logEvent("trying to connect with ip $ipAddress")
             try {
                 httpClient.webSocket(method = HttpMethod.Get, host = ipAddress, port = settings.directWebSocketPort, path = "/ws") {
                     activeWebSocketSession = this
+                    _connectionState.value = ConnectionState.CONNECTED
+                    logEvent("trying to connect with ip $ipAddress -> connected")
                     logEvent("Active WebSocket connected for $deviceId")
                     
                     while (isActive) {
@@ -162,8 +166,9 @@ class DirectTransport : CommunicationTransport {
                                 "INFO" -> _discoveryFlow.emit(json.decodeFromJsonElement(msg.data))
                                 "STATUS" -> _statusFlow.emit(json.decodeFromJsonElement(msg.data))
                                 "TELEMETRY" -> _telemetryFlow.emit(json.decodeFromJsonElement(msg.data))
-                                "FAULTS" -> _faultsFlow.emit(json.decodeFromJsonElement(msg.data))
                                 "DIAGNOSTICS" -> _diagnosticsFlow.emit(json.decodeFromJsonElement(msg.data))
+                                "REPORTS" -> _reportsFlow.emit(json.decodeFromJsonElement(msg.data))
+                                "FAULTS" -> _faultsFlow.emit(json.decodeFromJsonElement(msg.data))
                                 "HEARTBEAT" -> _heartbeatsFlow.emit(json.decodeFromJsonElement(msg.data))
                                 "COMMAND_RESPONSE" -> _responsesFlow.emit(json.decodeFromJsonElement(msg.data))
                                 else -> logEvent("Unknown message type: ${msg.type}")
@@ -176,15 +181,21 @@ class DirectTransport : CommunicationTransport {
                 }
             } catch (e: Exception) {
                 Napier.e("Active WebSocket failed for $deviceId", e)
+                logEvent("trying to connect with ip $ipAddress -> failed")
                 logEvent("Active WS Failed: ${e.message}")
+                _connectionState.value = ConnectionState.ERROR
+            } finally {
                 _activeDevice.value = null
                 activeWebSocketSession = null
+                if (_connectionState.value == ConnectionState.CONNECTED) {
+                    _connectionState.value = ConnectionState.DISCONNECTED
+                }
             }
         }
     }
 
     override suspend fun subscribeToDiscovery() {
-        // Handled by manualDiscoveryRequest
+        manualDiscoveryRequest()
     }
 
     override suspend fun unsubscribeFromDiscovery() {
@@ -197,6 +208,7 @@ class DirectTransport : CommunicationTransport {
     override fun observeStatus(deviceId: String): Flow<WspStatusPayload> = _statusFlow.asSharedFlow().filter { it.deviceId == deviceId }
     override fun observeTelemetry(deviceId: String): Flow<WspTelemetryPayload> = _telemetryFlow.asSharedFlow().filter { it.deviceId == deviceId }
     override fun observeDiagnostics(deviceId: String): Flow<WspDiagnosticsPayload> = _diagnosticsFlow.asSharedFlow().filter { it.deviceId == deviceId }
+    override fun observeReports(deviceId: String): Flow<WspReportsPayload> = _reportsFlow.asSharedFlow().filter { it.deviceId == deviceId }
     override fun observeFaults(deviceId: String): Flow<WspFaultPayload> = _faultsFlow.asSharedFlow().filter { it.deviceId == deviceId }
     override fun observeHeartbeats(deviceId: String): Flow<WspHeartbeatPayload> = _heartbeatsFlow.asSharedFlow().filter { it.deviceId == deviceId }
     override fun observeResponses(deviceId: String): Flow<WspResponsePayload> = _responsesFlow.asSharedFlow().filter { it.deviceId == deviceId }
@@ -243,10 +255,11 @@ class DirectTransport : CommunicationTransport {
             logEvent("Starting sequential WS discovery for IPs: ${settings.allowedShuttleIps}")
             
             for (ip in settings.allowedShuttleIps) {
-                logEvent("Probing $ip...")
+                logEvent("trying to connect with ip $ip")
                 try {
                     withTimeout(3000) {
                         httpClient.webSocket(method = HttpMethod.Get, host = ip, port = settings.directWebSocketPort, path = "/ws") {
+                            logEvent("trying to connect with ip $ip -> connected")
                             val frame = incoming.receive() as? Frame.Text
                             if (frame != null) {
                                 val text = frame.readText()
@@ -255,7 +268,7 @@ class DirectTransport : CommunicationTransport {
                                     if (msg.type == "INFO" || msg.type == "STATUS") {
                                         // Fake an info payload if we only got STATUS
                                         val deviceId = msg.data.jsonObject["deviceId"]?.jsonPrimitive?.content ?: "unknown"
-                                        val info = WspInfoPayload(
+                                        var info = WspInfoPayload(
                                             deviceId = deviceId,
                                             timestamp = kotlinx.datetime.Clock.System.now().toEpochMilliseconds(),
                                             serialNumber = "WS-DIRECT-$ip",
@@ -266,6 +279,9 @@ class DirectTransport : CommunicationTransport {
                                             manufacturer = "JKW",
                                             status = "ONLINE"
                                         )
+                                        if (msg.type == "INFO") {
+                                            info = json.decodeFromJsonElement<WspInfoPayload>(msg.data).copy(serialNumber = "WS-DIRECT-$ip")
+                                        }
                                         _discoveryFlow.emit(info)
                                         logEvent("Discovered $ip successfully!")
                                     }
@@ -277,6 +293,7 @@ class DirectTransport : CommunicationTransport {
                         }
                     }
                 } catch (e: Exception) {
+                    logEvent("trying to connect with ip $ip -> failed")
                     logEvent("Probe failed for $ip: ${e.message}")
                 }
             }
