@@ -244,60 +244,61 @@ class DirectTransport : CommunicationTransport {
     }
 
     override suspend fun manualDiscoveryRequest() {
-        val settings = currentSettings ?: return
-        if (settings.allowedShuttleIps.isEmpty()) {
-            logEvent("Discovery aborted: No IPs configured.")
-            return
-        }
-        
+        val settings = currentSettings
+        val targetPort = settings?.directWebSocketPort ?: 8081
+        val configuredIps = settings?.allowedShuttleIps ?: emptyList()
+        val defaultIps = listOf("127.0.0.1", "10.0.2.2", "localhost", "0.0.0.0", "192.168.68.78")
+        val ipsToProbe = (configuredIps + defaultIps).distinct()
+
         discoveryJob?.cancel()
         discoveryJob = scope.launch {
-            logEvent("Starting sequential WS discovery for IPs: ${settings.allowedShuttleIps}")
-            
-            for (ip in settings.allowedShuttleIps) {
-                logEvent("trying to connect with ip $ip")
-                try {
-                    withTimeout(3000) {
-                        httpClient.webSocket(method = HttpMethod.Get, host = ip, port = settings.directWebSocketPort, path = "/ws") {
-                            logEvent("trying to connect with ip $ip -> connected")
-                            val frame = incoming.receive() as? Frame.Text
-                            if (frame != null) {
-                                val text = frame.readText()
-                                try {
-                                    val msg = json.decodeFromString<WspWebSocketMessage>(text)
-                                    if (msg.type == "INFO" || msg.type == "STATUS") {
-                                        // Fake an info payload if we only got STATUS
-                                        val deviceId = msg.data.jsonObject["deviceId"]?.jsonPrimitive?.content ?: "unknown"
-                                        var info = WspInfoPayload(
-                                            deviceId = deviceId,
-                                            timestamp = kotlinx.datetime.Clock.System.now().toEpochMilliseconds(),
-                                            serialNumber = "WS-DIRECT-$ip",
-                                            displayName = "Shuttle at $ip",
-                                            protocolVersion = "1.0",
-                                            firmwareVersion = "1.0",
-                                            hardwareVersion = "Direct",
-                                            manufacturer = "JKW",
-                                            status = "ONLINE"
-                                        )
-                                        if (msg.type == "INFO") {
-                                            info = json.decodeFromJsonElement<WspInfoPayload>(msg.data).copy(serialNumber = "WS-DIRECT-$ip")
+            logEvent("Starting parallel WS discovery for IPs: $ipsToProbe on port $targetPort")
+
+            coroutineScope {
+                ipsToProbe.forEach { ip ->
+                    launch {
+                        try {
+                            withTimeout(2500) {
+                                httpClient.webSocket(method = HttpMethod.Get, host = ip, port = targetPort, path = "/ws") {
+                                    logEvent("WS Probe connected to $ip:$targetPort")
+                                    val frame = incoming.receive() as? Frame.Text
+                                    if (frame != null) {
+                                        val text = frame.readText()
+                                        try {
+                                            val msg = json.decodeFromString<WspWebSocketMessage>(text)
+                                            if (msg.type == "INFO" || msg.type == "STATUS") {
+                                                val deviceId = msg.data.jsonObject["deviceId"]?.jsonPrimitive?.content ?: "unknown"
+                                                var info = WspInfoPayload(
+                                                    deviceId = deviceId,
+                                                    timestamp = kotlinx.datetime.Clock.System.now().toEpochMilliseconds(),
+                                                    serialNumber = "WS-DIRECT-$ip",
+                                                    displayName = "Shuttle at $ip",
+                                                    protocolVersion = "1.0",
+                                                    firmwareVersion = "1.0",
+                                                    hardwareVersion = "Direct",
+                                                    manufacturer = "JKW",
+                                                    status = "ONLINE"
+                                                )
+                                                if (msg.type == "INFO") {
+                                                    info = json.decodeFromJsonElement<WspInfoPayload>(msg.data).copy(serialNumber = "WS-DIRECT-$ip")
+                                                }
+                                                _discoveryFlow.emit(info)
+                                                logEvent("Discovered shuttle at $ip ($deviceId) successfully!")
+                                            }
+                                        } catch (e: Exception) {
+                                            logEvent("Received message from $ip but couldn't parse: ${e.message}")
                                         }
-                                        _discoveryFlow.emit(info)
-                                        logEvent("Discovered $ip successfully!")
                                     }
-                                } catch (e: Exception) {
-                                    logEvent("Received message from $ip but couldn't parse as shuttle: ${e.message}")
+                                    close(CloseReason(CloseReason.Codes.NORMAL, "Probe finished"))
                                 }
                             }
-                            close(CloseReason(CloseReason.Codes.NORMAL, "Probe finished"))
+                        } catch (e: Exception) {
+                            // Silently complete failed probe
                         }
                     }
-                } catch (e: Exception) {
-                    logEvent("trying to connect with ip $ip -> failed")
-                    logEvent("Probe failed for $ip: ${e.message}")
                 }
             }
-            logEvent("Discovery scan complete.")
+            logEvent("Parallel discovery scan complete.")
         }
     }
 

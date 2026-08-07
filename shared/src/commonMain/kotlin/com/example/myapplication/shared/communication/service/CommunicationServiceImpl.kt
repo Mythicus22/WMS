@@ -120,14 +120,19 @@ class CommunicationServiceImpl(
     }
 
     override suspend fun subscribeToDiscovery() {
-        currentTransport.subscribeToDiscovery()
+        mqttTransport.subscribeToDiscovery()
+        directTransport.subscribeToDiscovery()
     }
 
     override suspend fun unsubscribeFromDiscovery() {
-        currentTransport.unsubscribeFromDiscovery()
+        mqttTransport.unsubscribeFromDiscovery()
+        directTransport.unsubscribeFromDiscovery()
     }
 
-    override fun observeDiscovery(): Flow<WspInfoPayload> = currentTransport.observeDiscovery()
+    override fun observeDiscovery(): Flow<WspInfoPayload> = merge(
+        mqttTransport.observeDiscovery(),
+        directTransport.observeDiscovery()
+    )
     override fun observeStatus(deviceId: String): Flow<WspStatusPayload> = currentTransport.observeStatus(deviceId)
     override fun observeTelemetry(deviceId: String): Flow<WspTelemetryPayload> = currentTransport.observeTelemetry(deviceId)
     override fun observeDiagnostics(deviceId: String): Flow<WspDiagnosticsPayload> = currentTransport.observeDiagnostics(deviceId)

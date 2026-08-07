@@ -59,6 +59,7 @@ import com.example.myapplication.shared.presentation.theme.AppDimensions
 import org.jetbrains.compose.resources.painterResource
 import myapplication.shared.generated.resources.Res
 import myapplication.shared.generated.resources.antonomous_logo
+import com.example.myapplication.shared.presentation.localization.tr
 
 @Composable
 fun DashboardScreen(
@@ -283,7 +284,7 @@ private fun MetricCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = title,
+                    text = title.tr(),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color.White.copy(alpha = 0.8f)
@@ -361,14 +362,14 @@ private fun FeatureModuleCard(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = feature.displayName,
+                    text = feature.displayName.tr(),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(AppDimensions.spacing4))
                 Text(
-                    text = feature.description,
+                    text = feature.description.tr(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     maxLines = 2

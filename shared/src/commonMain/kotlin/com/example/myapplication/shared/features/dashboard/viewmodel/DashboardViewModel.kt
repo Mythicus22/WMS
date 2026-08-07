@@ -40,6 +40,7 @@ class DashboardViewModel(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
     private val logoutUseCase: LogoutUseCase,
     private val registeredShuttleRepository: com.example.myapplication.shared.features.device.repository.RegisteredShuttleRepository,
+    private val discoveryRepository: com.example.myapplication.shared.features.device.repository.DiscoveryRepository,
     private val communicationService: com.example.myapplication.shared.communication.service.CommunicationService,
     private val getSettingsUseCase: com.example.myapplication.shared.features.settings.domain.GetSettingsUseCase
 ) : BaseViewModel<DashboardUiState, DashboardUiEvent, DashboardUiEffect>() {
@@ -79,12 +80,24 @@ class DashboardViewModel(
     }
 
     private fun observeDeviceCounts() {
-        registeredShuttleRepository.getRegisteredShuttleCounts().onEach { counts ->
+        kotlinx.coroutines.flow.combine(
+            discoveryRepository.getAllDevices(),
+            registeredShuttleRepository.getAllRegisteredShuttles()
+        ) { discovered, registered ->
+            val allMap = (discovered + registered).associateBy { it.deviceId }
+            val total = allMap.size.toLong()
+            val online = allMap.values.count { it.status == "ONLINE" }.toLong()
+            val offline = (total - online).coerceAtLeast(0L)
+            total to (online to offline)
+        }.onEach { pair ->
+            val total = pair.first
+            val online = pair.second.first
+            val offline = pair.second.second
             val currentState = uiState.value ?: DashboardUiState()
             setState(currentState.copy(
-                totalDiscoveredDevices = counts.total,
-                onlineDiscoveredDevices = counts.online,
-                offlineDiscoveredDevices = counts.offline
+                totalDiscoveredDevices = total,
+                onlineDiscoveredDevices = online,
+                offlineDiscoveredDevices = offline
             ))
         }.launchIn(viewModelScope)
     }

@@ -44,16 +44,19 @@ val LightColorScheme = lightColorScheme(
 )
 
 val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF8AB4F8), // Softer premium blue for dark theme
-    primaryContainer = Color(0xFF3F51B5),
-    secondary = Color(0xFF81D4FA),
-    secondaryContainer = Color(0xFF006064),
-    tertiary = Color(0xFF80CBC4),
-    background = Color(0xFF121212),
-    surface = Color(0xFF1E1E1E),
-    error = Color(0xFFCF6679), // Softer red for dark mode
-    onBackground = Color(0xFFE0E0E0),
-    onSurface = Color(0xFFE0E0E0),
+    primary = Color(0xFF60A5FA), // Electric blue accent
+    primaryContainer = Color(0xFF1E3A8A),
+    secondary = Color(0xFF38BDF8), // Sky blue accent
+    secondaryContainer = Color(0xFF0369A1),
+    tertiary = Color(0xFF818CF8),
+    background = Color(0xFF0F172A), // Deep Slate Navy Dark background
+    surface = Color(0xFF1E293B), // Slate Surface Card
+    surfaceVariant = Color(0xFF334155), // Slate Container / Input Field
+    outline = Color(0xFF475569), // Slate Border
+    error = Color(0xFFF87171),
+    onBackground = Color(0xFFF8FAFC), // Crisp Slate Text
+    onSurface = Color(0xFFF8FAFC),
+    onSurfaceVariant = Color(0xFF94A3B8), // Secondary Slate Text
     onError = Color(0xFF000000)
 )
 

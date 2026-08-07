@@ -52,9 +52,9 @@ fun SettingsScreen(navigator: Navigator, viewModel: SettingsViewModel) {
                     }
                     else -> {
                         TextButton(onClick = { isEditing = true }) {
-                            Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.Edit, contentDescription = "Edit", tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("Edit", color = MaterialTheme.colorScheme.onPrimary, fontWeight = FontWeight.Bold)
+                            Text("Edit", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -247,24 +247,77 @@ private fun <T> SettingsDropdown(
 }
 
 // ---------------------------------------------------------------------------
-// SECTION HEADER
+// SEGMENTED BUTTON ROW
 // ---------------------------------------------------------------------------
 @Composable
-private fun SectionHeader(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelMedium,
-        fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(bottom = 8.dp)
-    )
+private fun <T> SegmentedButtonRow(
+    options: List<T>,
+    selected: T,
+    displayName: (T) -> String,
+    onSelect: (T) -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    icon: (T) -> ImageVector? = { null }
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(40.dp)
+            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), RoundedCornerShape(20.dp))
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(20.dp)),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        options.forEachIndexed { index, option ->
+            val isSelected = option == selected
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .background(
+                        if (isSelected) MaterialTheme.colorScheme.primary else androidx.compose.ui.graphics.Color.Transparent,
+                        shape = when (index) {
+                            0 -> RoundedCornerShape(topStart = 20.dp, bottomStart = 20.dp)
+                            options.size - 1 -> RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp)
+                            else -> RoundedCornerShape(0.dp)
+                        }
+                    )
+                    .clickable(enabled = enabled && !isSelected) { onSelect(option) },
+                contentAlignment = Alignment.Center
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val optionIcon = icon(option)
+                    if (optionIcon != null) {
+                        Icon(
+                            imageVector = optionIcon,
+                            contentDescription = null,
+                            tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                    }
+                    Text(
+                        text = displayName(option),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
+            }
+            if (index < options.size - 1 && !isSelected && options[index + 1] != selected) {
+                Divider(
+                    modifier = Modifier.width(1.dp).fillMaxHeight(0.6f),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                )
+            }
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
 // SETTINGS CARD WRAPPER
 // ---------------------------------------------------------------------------
 @Composable
-private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
+private fun SettingsCard(title: String, content: @Composable ColumnScope.() -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -274,9 +327,17 @@ private fun SettingsCard(content: @Composable ColumnScope.() -> Unit) {
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            content = content
-        )
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = title.uppercase(),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+                modifier = Modifier.padding(bottom = 4.dp)
+            )
+            content()
+        }
     }
 }
 
@@ -292,12 +353,12 @@ private fun ViewRow(label: String, value: String, icon: ImageVector? = null) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
             if (icon != null) {
-                Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
+                Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(8.dp))
             }
-            Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
+            Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
         }
-        Text(value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+        Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
     }
 }
 
@@ -339,132 +400,108 @@ private fun GeneralSettingsView(
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
         // ── Theme Toggle (always active – immediate effect) ──────────────────
-        SectionHeader("APPLICATION THEME")
-        Card(
-            modifier = Modifier.fillMaxWidth()
-                .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), RoundedCornerShape(12.dp)),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.07f))
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Current Theme", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                    Text(draft.themeMode.displayName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f))
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    ThemeToggleButton(mode = ThemeMode.LIGHT, icon = Icons.Default.LightMode, label = "Light", selected = draft.themeMode == ThemeMode.LIGHT) {
-                        draft = draft.copy(themeMode = ThemeMode.LIGHT)
-                        onSave(draft.copy(themeMode = ThemeMode.LIGHT))
-                    }
-                    ThemeToggleButton(mode = ThemeMode.DARK, icon = Icons.Default.DarkMode, label = "Dark", selected = draft.themeMode == ThemeMode.DARK) {
-                        draft = draft.copy(themeMode = ThemeMode.DARK)
-                        onSave(draft.copy(themeMode = ThemeMode.DARK))
+        SettingsCard("APPLICATION THEME") {
+            SegmentedButtonRow(
+                options = ThemeMode.entries,
+                selected = draft.themeMode,
+                displayName = { it.displayName },
+                onSelect = { mode ->
+                    draft = draft.copy(themeMode = mode)
+                    onSave(draft) // Immediate save for theme
+                },
+                icon = { mode ->
+                    when (mode) {
+                        ThemeMode.LIGHT -> Icons.Default.LightMode
+                        ThemeMode.DARK -> Icons.Default.DarkMode
                     }
                 }
-            }
+            )
         }
 
         // ── Warehouse & Company ──────────────────────────────────────────────
-        SectionHeader("WAREHOUSE & COMPANY")
-        SettingsCard {
+        SettingsCard("WAREHOUSE & COMPANY") {
             if (isEditing) {
                 OutlinedTextField(value = draft.warehouseName, onValueChange = { draft = draft.copy(warehouseName = it) }, label = { Text("Warehouse Name") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                 OutlinedTextField(value = draft.warehouseCode, onValueChange = { draft = draft.copy(warehouseCode = it) }, label = { Text("Warehouse Code (max 20 chars)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                 OutlinedTextField(value = draft.companyName, onValueChange = { draft = draft.copy(companyName = it) }, label = { Text("Company Name") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
             } else {
-                ViewRow("Warehouse Name", general.warehouseName, Icons.Default.Warehouse)
-                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                ViewRow("Warehouse Name", general.warehouseName)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
                 ViewRow("Warehouse Code", general.warehouseCode)
-                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-                ViewRow("Company Name", general.companyName, Icons.Default.Business)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                ViewRow("Company Name", general.companyName)
             }
         }
 
         // ── Language ─────────────────────────────────────────────────────────
-        SectionHeader("LANGUAGE PREFERENCE")
-        SettingsCard {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                AppLanguage.entries.forEach { lang ->
-                    val isSel = draft.language == lang
-                    OutlinedButton(
-                        onClick = {
-                            draft = draft.copy(language = lang)
-                            if (!isEditing) onSave(draft)
-                        },
-                        shape = RoundedCornerShape(8.dp),
-                        enabled = isEditing || draft.language == lang,
-                        colors = if (isSel) ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)) else ButtonDefaults.outlinedButtonColors(),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Icon(Icons.Default.Language, contentDescription = null, modifier = Modifier.size(14.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text(lang.displayName, style = MaterialTheme.typography.labelSmall, fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal)
-                    }
-                }
-            }
+        SettingsCard("LANGUAGE PREFERENCE") {
+            SegmentedButtonRow(
+                options = AppLanguage.entries,
+                selected = draft.language,
+                displayName = { it.displayName },
+                onSelect = { lang ->
+                    draft = draft.copy(language = lang)
+                    if (!isEditing) onSave(draft)
+                },
+                enabled = isEditing || true // Always enabled for quick toggle like theme? No, keep it as isEditing unless we want it quick. Let's make it quick toggle like design.
+            )
         }
 
         // ── Date & Time ───────────────────────────────────────────────────────
-        SectionHeader("DATE & TIME FORMAT")
-        SettingsCard {
+        SettingsCard("DATE & TIME FORMAT") {
             if (isEditing) {
                 SettingsDropdown(label = "Date Format", selected = draft.dateFormat, options = DateFormat.entries, displayName = { it.displayName }, enabled = true) { draft = draft.copy(dateFormat = it) }
                 SettingsDropdown(label = "Time Format", selected = draft.timeFormat, options = TimeFormat.entries, displayName = { it.displayName }, enabled = true) { draft = draft.copy(timeFormat = it) }
             } else {
                 ViewRow("Date Format", general.dateFormat.displayName, Icons.Default.DateRange)
-                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-                ViewRow("Time Format", general.timeFormat.displayName)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                ViewRow("Time Format", general.timeFormat.displayName, Icons.Default.Schedule)
             }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
             // Device time refresh (always shown)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Device Date & Time", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                    Text(general.currentDateTimePreview, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                    Icon(Icons.Default.Event, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Device Date & Time", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                 }
-                OutlinedButton(
-                    onClick = { /* timestamp refresh — future: use kotlinx-datetime */ },
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(14.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text("Refresh", style = MaterialTheme.typography.labelSmall)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(general.currentDateTimePreview, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
+                    Spacer(Modifier.width(12.dp))
+                    OutlinedButton(
+                        onClick = { /* timestamp refresh */ },
+                        shape = RoundedCornerShape(16.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                        modifier = Modifier.height(28.dp)
+                    ) {
+                        Text("Refresh", style = MaterialTheme.typography.labelSmall)
+                    }
                 }
             }
         }
 
         // ── Display Preferences ───────────────────────────────────────────────
-        SectionHeader("DISPLAY PREFERENCES")
-        SettingsCard {
+        SettingsCard("DISPLAY PREFERENCES") {
             if (isEditing) {
                 SettingsDropdown(label = "Default Measurement Units", selected = draft.defaultUnits, options = MeasurementUnit.entries, displayName = { it.displayName }, enabled = true) { draft = draft.copy(defaultUnits = it) }
                 SettingsDropdown(label = "Font Family", selected = draft.fontFamily, options = AppFontFamily.entries, displayName = { it.displayName }, enabled = true) { draft = draft.copy(fontFamily = it) }
                 // Font Size — segmented buttons
-                Column {
-                    Text("Font Size", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(6.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-                        AppFontSize.entries.forEach { fs ->
-                            val sel = draft.fontSize == fs
-                            OutlinedButton(
-                                onClick = { draft = draft.copy(fontSize = fs) },
-                                shape = RoundedCornerShape(8.dp),
-                                colors = if (sel) ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)) else ButtonDefaults.outlinedButtonColors(),
-                                modifier = Modifier.weight(1f),
-                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
-                            ) { Text(fs.displayName.substringBefore(" "), style = MaterialTheme.typography.labelSmall, fontWeight = if (sel) FontWeight.Bold else FontWeight.Normal) }
-                        }
-                    }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Font Size", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                    SegmentedButtonRow(
+                        options = AppFontSize.entries,
+                        selected = draft.fontSize,
+                        displayName = { it.displayName.substringBefore(" ") },
+                        onSelect = { draft = draft.copy(fontSize = it) },
+                        enabled = true
+                    )
                 }
             } else {
                 ViewRow("Measurement Units", general.defaultUnits.displayName, Icons.Default.Straighten)
-                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
                 ViewRow("Font Family", general.fontFamily.displayName, Icons.Default.TextFields)
-                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-                ViewRow("Font Size", general.fontSize.displayName)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                ViewRow("Font Size", general.fontSize.displayName, Icons.Default.FormatSize)
             }
         }
 
@@ -548,24 +585,28 @@ private fun CommunicationSettingsView(
     var passwordVisible by remember { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        SectionHeader("COMMUNICATION MODE")
-        SettingsCard {
+        SettingsCard("COMMUNICATION MODE") {
             if (isEditing) {
-                SettingsDropdown(
-                    label = "Operation Mode",
-                    selected = draft.mode,
+                SegmentedButtonRow(
                     options = CommunicationMode.entries,
+                    selected = draft.mode,
                     displayName = { it.displayName },
-                    enabled = true
-                ) { draft = draft.copy(mode = it) }
+                    onSelect = { draft = draft.copy(mode = it) },
+                    enabled = true,
+                    icon = { mode ->
+                        when (mode) {
+                            CommunicationMode.MQTT_BROKER -> Icons.Default.Cloud
+                            CommunicationMode.DIRECT -> Icons.Default.Router
+                        }
+                    }
+                )
             } else {
                 ViewRow("Current Mode", comm.mode.displayName, Icons.Default.NetworkWifi)
             }
         }
 
         if (draft.mode == CommunicationMode.MQTT_BROKER) {
-            SectionHeader("MQTT BROKER CONFIGURATION")
-            SettingsCard {
+            SettingsCard("MQTT BROKER CONFIGURATION") {
                 if (isEditing) {
                     OutlinedTextField(value = draft.mqttBrokerAddress, onValueChange = { draft = draft.copy(mqttBrokerAddress = it) }, label = { Text("Broker IP / Hostname") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                     OutlinedTextField(
@@ -599,20 +640,19 @@ private fun CommunicationSettingsView(
                     )
                 } else {
                     ViewRow("Broker Address", comm.mqttBrokerAddress, Icons.Default.Wifi)
-                    Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
                     ViewRow("MQTT Port", comm.mqttPort.toString())
-                    Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
                     ViewRow("Client ID", comm.clientId)
-                    Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
                     ViewRow("Username", if (comm.username.isNotBlank()) comm.username else "(Not Set)")
                 }
             }
         } else {
-            SectionHeader("DIRECT MODE CONFIGURATION")
-            SettingsCard {
+            SettingsCard("DIRECT MODE CONFIGURATION") {
                 if (isEditing) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Allowed Shuttle IP Addresses", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        Text("Allowed Shuttle IP Addresses", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                         
                         draft.allowedShuttleIps.forEach { ip ->
                             Row(
@@ -672,14 +712,14 @@ private fun CommunicationSettingsView(
                     )
                 } else {
                     ViewRow("Allowed IPs", if (comm.allowedShuttleIps.isEmpty()) "None configured" else "${comm.allowedShuttleIps.size} IPs configured", Icons.Default.NetworkPing)
-                    Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
                     ViewRow("WebSocket Port", comm.directWebSocketPort.toString())
                 }
             }
         }
 
         if (draft.mode == CommunicationMode.MQTT_BROKER) {
-            SettingsCard {
+            SettingsCard("CONNECTION CONTROLS") {
                 // Connection Controls
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     OutlinedButton(
@@ -700,8 +740,7 @@ private fun CommunicationSettingsView(
             }
         }
 
-        SectionHeader("TIMING & RELIABILITY")
-        SettingsCard {
+        SettingsCard("TIMING & RELIABILITY") {
             if (isEditing) {
                 OutlinedTextField(
                     value = draft.keepAliveSeconds.toString(),
@@ -744,29 +783,28 @@ private fun CommunicationSettingsView(
                 )
                 SwitchRow("Automatic Reconnect", "Retry connection on disconnect.", draft.autoReconnect, true) { draft = draft.copy(autoReconnect = it) }
             } else {
-                ViewRow("Keep Alive", "${comm.keepAliveSeconds}s")
-                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-                ViewRow("Heartbeat", "${comm.heartbeatIntervalMs}ms")
-                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-                ViewRow("Timeout", "${comm.communicationTimeoutMs}ms")
-                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-                ViewRow("Auto Reconnect", if (comm.autoReconnect) "Enabled" else "Disabled")
+                ViewRow("Keep Alive", "${comm.keepAliveSeconds}s", Icons.Default.Timer)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                ViewRow("Heartbeat", "${comm.heartbeatIntervalMs}ms", Icons.Default.FavoriteBorder)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                ViewRow("Timeout", "${comm.communicationTimeoutMs}ms", Icons.Default.HourglassEmpty)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                ViewRow("Auto Reconnect", if (comm.autoReconnect) "Enabled" else "Disabled", Icons.Default.Autorenew)
             }
         }
 
         if (draft.mode == CommunicationMode.MQTT_BROKER) {
-            SectionHeader("COMMUNICATION DIAGNOSTICS")
-            SettingsCard {
-                ViewRow("Connection State", diagnostics.connectionState)
-                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-                ViewRow("Last Error", diagnostics.lastError)
-                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-                ViewRow("Reconnect Count", diagnostics.reconnectCount.toString())
-                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-                ViewRow("MQTT Library", diagnostics.libraryVersion)
+            SettingsCard("COMMUNICATION DIAGNOSTICS") {
+                ViewRow("Connection State", diagnostics.connectionState, Icons.Default.PowerSettingsNew)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                ViewRow("Last Error", diagnostics.lastError, Icons.Default.ErrorOutline)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                ViewRow("Reconnect Count", diagnostics.reconnectCount.toString(), Icons.Default.Repeat)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                ViewRow("MQTT Library", diagnostics.libraryVersion, Icons.Default.Code)
                 
                 Spacer(Modifier.height(8.dp))
-                Text("Live Connection Log", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                Text("Live Connection Log", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -838,20 +876,32 @@ private fun ReportSettingsView(
     val namingPreview = "${draft.reportNamingToken1}_${draft.reportNamingToken2}_${draft.reportNamingToken3}.${draft.defaultExportFormat.extension}"
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        SectionHeader("EXPORT & FORMAT")
-        SettingsCard {
+        SettingsCard("EXPORT & FORMAT") {
             if (isEditing) {
-                SettingsDropdown("Default Export Format", draft.defaultExportFormat, ReportExportFormat.entries, { it.displayName }, true) { draft = draft.copy(defaultExportFormat = it) }
+                SegmentedButtonRow(
+                    options = ReportExportFormat.entries,
+                    selected = draft.defaultExportFormat,
+                    displayName = { it.displayName },
+                    onSelect = { draft = draft.copy(defaultExportFormat = it) },
+                    enabled = true,
+                    icon = { format ->
+                        when (format) {
+                            ReportExportFormat.PDF -> Icons.Default.PictureAsPdf
+                            ReportExportFormat.CSV -> Icons.Default.TableChart
+                            ReportExportFormat.XLSX -> Icons.Default.GridOn
+                            ReportExportFormat.JSON -> Icons.Default.DataObject
+                        }
+                    }
+                )
                 SwitchRow("Automatic Scheduled Reports", "Auto-generate reports at end of each shift.", draft.autoReportGeneration, true) { draft = draft.copy(autoReportGeneration = it) }
             } else {
                 ViewRow("Export Format", reports.defaultExportFormat.displayName, Icons.Default.FilePresent)
-                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-                ViewRow("Auto Report Generation", if (reports.autoReportGeneration) "Enabled" else "Disabled")
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                ViewRow("Auto Report Generation", if (reports.autoReportGeneration) "Enabled" else "Disabled", Icons.Default.ScheduleSend)
             }
         }
 
-        SectionHeader("NAMING CONVENTION")
-        SettingsCard {
+        SettingsCard("NAMING CONVENTION") {
             if (isEditing) {
                 Text("Select tokens for the report filename pattern:", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                 // Token 1, 2, 3
@@ -875,8 +925,7 @@ private fun ReportSettingsView(
             }
         }
 
-        SectionHeader("STORAGE LOCATION")
-        SettingsCard {
+        SettingsCard("STORAGE LOCATION") {
             if (isEditing) {
                 // Preset path picker dialog
                 var showPathPicker by remember { mutableStateOf(false) }
@@ -904,16 +953,15 @@ private fun ReportSettingsView(
             }
         }
 
-        SectionHeader("ANALYTICS & LOGGING")
-        SettingsCard {
+        SettingsCard("ANALYTICS & LOGGING") {
             if (isEditing) {
                 SettingsDropdown("Log Level", draft.logLevel, LogLevel.entries, { it.displayName }, true) { draft = draft.copy(logLevel = it) }
                 Text(draft.logLevel.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                 SwitchRow("Analytics Data Collection", "Collect operational telemetry and performance metrics.", draft.analyticsEnabled, true) { draft = draft.copy(analyticsEnabled = it) }
             } else {
                 ViewRow("Log Level", reports.logLevel.displayName, Icons.Default.BugReport)
-                Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
-                ViewRow("Analytics", if (reports.analyticsEnabled) "Enabled" else "Disabled")
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+                ViewRow("Analytics", if (reports.analyticsEnabled) "Enabled" else "Disabled", Icons.Default.Analytics)
             }
         }
 
@@ -965,8 +1013,7 @@ private fun BackupSettingsView(
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
         // ── Auto Backup ───────────────────────────────────────────────────────
-        SectionHeader("AUTOMATIC BACKUP")
-        SettingsCard {
+        SettingsCard("AUTOMATIC BACKUP") {
             SwitchRow(
                 "Nightly Auto-Backup",
                 "Automatically backup the database every 24 hours.",
@@ -976,12 +1023,11 @@ private fun BackupSettingsView(
         }
 
         // ── Manual Backup ─────────────────────────────────────────────────────
-        SectionHeader("MANUAL BACKUP")
-        SettingsCard {
+        SettingsCard("MANUAL BACKUP") {
             // Destination path row
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Backup Destination", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                    Text("Backup Destination", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                     Text(selectedPath, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                 }
                 val backupLauncher = com.example.myapplication.shared.features.settings.components.rememberDirectoryPicker { uri ->
@@ -1015,9 +1061,8 @@ private fun BackupSettingsView(
         }
 
         // ── Backup History ────────────────────────────────────────────────────
-        SectionHeader("BACKUP HISTORY")
         if (backup.backupHistory.isEmpty()) {
-            SettingsCard {
+            SettingsCard("BACKUP HISTORY") {
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                     Icon(Icons.Default.HistoryToggleOff, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f), modifier = Modifier.size(24.dp))
                     Spacer(Modifier.width(8.dp))
@@ -1025,49 +1070,51 @@ private fun BackupSettingsView(
                 }
             }
         } else {
-            backup.backupHistory.forEach { entry ->
-                Card(
-                    modifier = Modifier.fillMaxWidth()
-                        .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f), RoundedCornerShape(10.dp)),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+            SettingsCard("BACKUP HISTORY") {
+                backup.backupHistory.forEach { entry ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth()
+                            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f), RoundedCornerShape(10.dp)),
+                        shape = RoundedCornerShape(10.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
-                        // Status badge
-                        Box(
-                            modifier = Modifier.size(36.dp)
-                                .background(
-                                    if (entry.status == "SUCCESS") AppColors.Success.copy(alpha = 0.12f) else AppColors.Error.copy(alpha = 0.12f),
-                                    RoundedCornerShape(8.dp)
-                                ),
-                            contentAlignment = Alignment.Center
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                if (entry.status == "SUCCESS") Icons.Default.CheckCircle else Icons.Default.Error,
-                                contentDescription = null,
-                                tint = if (entry.status == "SUCCESS") AppColors.Success else AppColors.Error,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        Spacer(Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(entry.fileName, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, maxLines = 1)
-                            Text("${entry.timestamp} · ${entry.sizeKb / 1024} MB", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f))
-                        }
-                        // Restore button
-                        OutlinedButton(
-                            onClick = { restoreTarget = entry },
-                            shape = RoundedCornerShape(8.dp),
-                            enabled = !isProcessing,
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = AppColors.Error),
-                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
-                        ) {
-                            Icon(Icons.Default.Restore, contentDescription = null, modifier = Modifier.size(14.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("Restore", style = MaterialTheme.typography.labelSmall)
+                            // Status badge
+                            Box(
+                                modifier = Modifier.size(36.dp)
+                                    .background(
+                                        if (entry.status == "SUCCESS") AppColors.Success.copy(alpha = 0.12f) else AppColors.Error.copy(alpha = 0.12f),
+                                        RoundedCornerShape(8.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    if (entry.status == "SUCCESS") Icons.Default.CheckCircle else Icons.Default.Error,
+                                    contentDescription = null,
+                                    tint = if (entry.status == "SUCCESS") AppColors.Success else AppColors.Error,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Spacer(Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(entry.fileName, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, maxLines = 1)
+                                Text("${entry.timestamp} · ${entry.sizeKb / 1024} MB", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f))
+                            }
+                            // Restore button
+                            OutlinedButton(
+                                onClick = { restoreTarget = entry },
+                                shape = RoundedCornerShape(8.dp),
+                                enabled = !isProcessing,
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = AppColors.Error),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp)
+                            ) {
+                                Icon(Icons.Default.Restore, contentDescription = null, modifier = Modifier.size(14.dp))
+                                Spacer(Modifier.width(4.dp))
+                                Text("Restore", style = MaterialTheme.typography.labelSmall)
+                            }
                         }
                     }
                 }
@@ -1133,22 +1180,20 @@ private fun AboutSystemView(systemInfo: SystemInfo) {
     var showLicensesDialog by remember { mutableStateOf(false) }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        SectionHeader("APPLICATION BUILD INFORMATION")
-        SettingsCard {
+        SettingsCard("APPLICATION BUILD INFORMATION") {
             ViewRow("Application Version", systemInfo.appVersion, Icons.Default.Info)
-            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
             ViewRow("Build Number", systemInfo.buildNumber)
-            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
             ViewRow("Target Environment", systemInfo.targetEnvironment)
-            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
             ViewRow("Storage Usage", systemInfo.storageUsage, Icons.Default.Storage)
         }
 
-        SectionHeader("COMPANY & SUPPORT")
-        SettingsCard {
+        SettingsCard("COMPANY & SUPPORT") {
             Text("Company Information:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
             Text(systemInfo.companyInformation, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
-            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
             Text("Contact Information:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
             Text(systemInfo.contactInformation, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
             Spacer(Modifier.height(8.dp))

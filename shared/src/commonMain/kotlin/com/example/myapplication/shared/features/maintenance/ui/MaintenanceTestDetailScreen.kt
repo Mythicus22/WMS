@@ -26,7 +26,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -292,7 +293,7 @@ private fun TestOverviewCard(def: TestDefinition) {
             Text(text = def.description, style = MaterialTheme.typography.bodySmall)
 
             Spacer(modifier = Modifier.height(10.dp))
-            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
             Spacer(modifier = Modifier.height(10.dp))
 
             Text(text = "Required Preconditions:", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)

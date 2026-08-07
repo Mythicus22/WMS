@@ -72,85 +72,123 @@ fun ReportsTabScreen(state: ReportsUiState, onEvent: (ReportsUiEvent) -> Unit) {
             Text("• ${filter.sortOrder.displayName}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
         }
 
-        // ── Category Side Tabs (scrollable chip row) ───────────────────────
         val visibleCategories = if (state.shuttleId == null || state.shuttleId == "ALL") {
             ReportCategory.entries
         } else {
             ReportCategory.entries.filter { it != ReportCategory.SHUTTLE_UTILIZATION && it != ReportCategory.PRODUCTIVITY }
         }
 
-        LazyRow(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(visibleCategories) { cat ->
-                val sel = cat == state.selectedCategory
-                FilterChip(
-                    selected = sel,
-                    onClick = { onEvent(ReportsUiEvent.SelectCategory(cat)) },
-                    label = { Text(cat.displayName, style = MaterialTheme.typography.labelSmall) },
-                    leadingIcon = if (sel) ({ Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(14.dp)) }) else null
-                )
-            }
-        }
-
         HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
 
-        // ── Category Content ────────────────────────────────────────────────
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(AppDimensions.spacing8)
-        ) {
-            item { Spacer(Modifier.height(8.dp)) }
-
-            when (state.selectedCategory) {
-                ReportCategory.SUMMARY -> {
-                    items(state.summary) { SummaryRow(it) }
-                    if (state.summary.isEmpty()) item { EmptyDataCard() }
-                }
-                ReportCategory.STORE_OPERATIONS -> {
-                    items(state.storeOps) { OperationRow(it) }
-                    if (state.storeOps.isEmpty()) item { EmptyDataCard() }
-                }
-                ReportCategory.RETRIEVE_OPERATIONS -> {
-                    items(state.retrieveOps) { OperationRow(it) }
-                    if (state.retrieveOps.isEmpty()) item { EmptyDataCard() }
-                }
-                ReportCategory.TASK_HISTORY -> {
-                    items(state.tasks) { TaskRow(it) }
-                    if (state.tasks.isEmpty()) item { EmptyDataCard() }
-                }
-                ReportCategory.MISSION_HISTORY -> {
-                    items(state.missions) { MissionRow(it) }
-                    if (state.missions.isEmpty()) item { EmptyDataCard() }
-                }
-                ReportCategory.SHUTTLE_UTILIZATION -> {
-                    items(state.utilization) { UtilizationRow(it) }
-                    if (state.utilization.isEmpty()) item { EmptyDataCard() }
-                }
-                ReportCategory.BATTERY -> {
-                    items(state.battery) { BatteryRow(it) }
-                    if (state.battery.isEmpty()) item { EmptyDataCard() }
-                }
-                ReportCategory.MOTOR_RUNTIME -> {
-                    items(state.motorRuntime) { MotorRow(it) }
-                    if (state.motorRuntime.isEmpty()) item { EmptyDataCard() }
-                }
-                ReportCategory.FAULT_HISTORY -> {
-                    items(state.faults) { FaultRow(it) }
-                    if (state.faults.isEmpty()) item { EmptyDataCard() }
-                }
-                ReportCategory.MAINTENANCE_HISTORY -> {
-                    items(state.maintenance) { MaintenanceRow(it) }
-                    if (state.maintenance.isEmpty()) item { EmptyDataCard() }
-                }
-                ReportCategory.PRODUCTIVITY -> {
-                    items(state.productivity) { ProductivityRow(it) }
-                    if (state.productivity.isEmpty()) item { EmptyDataCard() }
+        Row(modifier = Modifier.fillMaxSize()) {
+            // ── Sidebar Category Navigation ────────────────────────────────────
+            Column(
+                modifier = Modifier
+                    .width(220.dp)
+                    .fillMaxHeight()
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f))
+                    .padding(vertical = 8.dp, horizontal = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "CATEGORIES",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    modifier = Modifier.padding(start = 12.dp, top = 8.dp, bottom = 4.dp)
+                )
+                visibleCategories.forEach { cat ->
+                    val sel = cat == state.selectedCategory
+                    Surface(
+                        onClick = { onEvent(ReportsUiEvent.SelectCategory(cat)) },
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (sel) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = cat.displayName,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = if (sel) FontWeight.Bold else FontWeight.Medium,
+                                color = if (sel) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                            )
+                            if (sel) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .background(MaterialTheme.colorScheme.primary, shape = androidx.compose.foundation.shape.CircleShape)
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
-            item { Spacer(Modifier.height(16.dp)) }
+            VerticalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
+
+            // ── Category Content Area ──────────────────────────────────────────
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(AppDimensions.spacing8)
+            ) {
+                item { Spacer(Modifier.height(8.dp)) }
+
+                when (state.selectedCategory) {
+                    ReportCategory.SUMMARY -> {
+                        items(state.summary) { SummaryRow(it) }
+                        if (state.summary.isEmpty()) item { EmptyDataCard() }
+                    }
+                    ReportCategory.STORE_OPERATIONS -> {
+                        items(state.storeOps) { OperationRow(it) }
+                        if (state.storeOps.isEmpty()) item { EmptyDataCard() }
+                    }
+                    ReportCategory.RETRIEVE_OPERATIONS -> {
+                        items(state.retrieveOps) { OperationRow(it) }
+                        if (state.retrieveOps.isEmpty()) item { EmptyDataCard() }
+                    }
+                    ReportCategory.TASK_HISTORY -> {
+                        items(state.tasks) { TaskRow(it) }
+                        if (state.tasks.isEmpty()) item { EmptyDataCard() }
+                    }
+                    ReportCategory.MISSION_HISTORY -> {
+                        items(state.missions) { MissionRow(it) }
+                        if (state.missions.isEmpty()) item { EmptyDataCard() }
+                    }
+                    ReportCategory.SHUTTLE_UTILIZATION -> {
+                        items(state.utilization) { UtilizationRow(it) }
+                        if (state.utilization.isEmpty()) item { EmptyDataCard() }
+                    }
+                    ReportCategory.BATTERY -> {
+                        items(state.battery) { BatteryRow(it) }
+                        if (state.battery.isEmpty()) item { EmptyDataCard() }
+                    }
+                    ReportCategory.MOTOR_RUNTIME -> {
+                        items(state.motorRuntime) { MotorRow(it) }
+                        if (state.motorRuntime.isEmpty()) item { EmptyDataCard() }
+                    }
+                    ReportCategory.FAULT_HISTORY -> {
+                        items(state.faults) { FaultRow(it) }
+                        if (state.faults.isEmpty()) item { EmptyDataCard() }
+                    }
+                    ReportCategory.MAINTENANCE_HISTORY -> {
+                        items(state.maintenance) { MaintenanceRow(it) }
+                        if (state.maintenance.isEmpty()) item { EmptyDataCard() }
+                    }
+                    ReportCategory.PRODUCTIVITY -> {
+                        items(state.productivity) { ProductivityRow(it) }
+                        if (state.productivity.isEmpty()) item { EmptyDataCard() }
+                    }
+                }
+
+                item { Spacer(Modifier.height(16.dp)) }
+            }
         }
     }
 

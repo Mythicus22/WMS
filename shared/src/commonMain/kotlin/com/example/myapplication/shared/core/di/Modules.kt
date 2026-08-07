@@ -40,7 +40,7 @@ val coreModule = module {
     // ViewModels
     factory { AuthViewModel(get()) }
     factory { com.example.myapplication.shared.features.auth.viewmodel.SetupViewModel(get(), get()) }
-    factory { DashboardViewModel(get(), get(), get(), get(), get()) }
+    factory { DashboardViewModel(get(), get(), get(), get(), get(), get()) }
     factory { UserManagementViewModel(get()) }
 }
 

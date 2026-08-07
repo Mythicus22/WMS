@@ -14,6 +14,9 @@ import com.example.myapplication.shared.presentation.theme.AppTheme
 import com.example.myapplication.shared.presentation.theme.buildTypography
 import org.koin.core.context.GlobalContext
 
+import androidx.compose.runtime.CompositionLocalProvider
+import com.example.myapplication.shared.presentation.localization.LocalAppLanguage
+
 @Composable
 @Preview
 fun App() {
@@ -25,12 +28,13 @@ fun App() {
     val darkTheme = when (settings.general.themeMode) {
         ThemeMode.DARK -> true
         ThemeMode.LIGHT -> false
-        ThemeMode.SYSTEM -> false // Platform-specific isSystemInDarkTheme() can be wired per target
     }
     val typography = buildTypography(settings.general.fontSize)
 
-    AppTheme(darkTheme = darkTheme, typography = typography) {
-        val navigator = remember { Navigator() }
-        AppNavHost(navigator = navigator)
+    CompositionLocalProvider(LocalAppLanguage provides settings.general.language) {
+        AppTheme(darkTheme = darkTheme, typography = typography) {
+            val navigator = remember { Navigator() }
+            AppNavHost(navigator = navigator)
+        }
     }
 }

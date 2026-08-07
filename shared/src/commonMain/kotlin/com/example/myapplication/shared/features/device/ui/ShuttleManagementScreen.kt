@@ -29,6 +29,7 @@ import com.example.myapplication.shared.presentation.components.AppToolbar
 import com.example.myapplication.shared.presentation.theme.AppColors
 import com.example.myapplication.shared.presentation.theme.AppDimensions
 import kotlinx.coroutines.flow.collectLatest
+import com.example.myapplication.shared.presentation.localization.tr
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -298,9 +299,13 @@ fun ShuttleItemCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier,
+        modifier = modifier.border(
+            if (isActive) 1.5.dp else 1.dp,
+            if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+            RoundedCornerShape(12.dp)
+        ),
         colors = CardDefaults.cardColors(
-            containerColor = if (isActive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(12.dp)
@@ -315,7 +320,8 @@ fun ShuttleItemCard(
                     Text(
                         text = shuttle.nameToDisplay,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = "ID: ${shuttle.deviceId}",
@@ -325,18 +331,43 @@ fun ShuttleItemCard(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    val isOnline = shuttle.status == "ONLINE"
-                    Text(
-                        text = if (isOnline) "ACTIVE" else "DISABLED",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (isOnline) AppColors.Success else MaterialTheme.colorScheme.error,
-                        modifier = Modifier
-                            .background(
-                                color = (if (isOnline) AppColors.Success else MaterialTheme.colorScheme.error).copy(alpha = 0.1f),
-                                shape = MaterialTheme.shapes.small
-                            )
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    )
+                    if (isActive) {
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = AppColors.Success.copy(alpha = 0.12f)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .background(AppColors.Success, androidx.compose.foundation.shape.CircleShape)
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    text = "CONNECTED".tr(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = AppColors.Success,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    } else {
+                        val isOnline = shuttle.status == "ONLINE"
+                        Text(
+                            text = (if (isOnline) "ACTIVE" else "DISABLED").tr(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (isOnline) AppColors.Success else MaterialTheme.colorScheme.error,
+                            modifier = Modifier
+                                .background(
+                                    color = (if (isOnline) AppColors.Success else MaterialTheme.colorScheme.error).copy(alpha = 0.1f),
+                                    shape = MaterialTheme.shapes.small
+                                )
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
                 }
             }
 
@@ -351,12 +382,12 @@ fun ShuttleItemCard(
             }
 
             Spacer(modifier = Modifier.height(AppDimensions.spacing8))
-            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
             Spacer(modifier = Modifier.height(AppDimensions.spacing4))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
                 if (isActive) {
-                    Text("Active", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(end = 8.dp))
+                    Text("Active Shuttle", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(end = 8.dp))
                 } else {
                     OutlinedButton(
                         onClick = onConnect,

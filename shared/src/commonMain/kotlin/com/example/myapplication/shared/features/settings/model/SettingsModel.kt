@@ -5,8 +5,7 @@ import kotlinx.serialization.Serializable
 // THEME
 enum class ThemeMode(val displayName: String) {
     LIGHT("Light Theme"),
-    DARK("Dark Theme"),
-    SYSTEM("System Default")
+    DARK("Dark Theme")
 }
 
 // LANGUAGE
@@ -101,7 +100,7 @@ data class GeneralSettings(
     val warehouseName: String = "Central Distribution Hub 01",
     val warehouseCode: String = "WH-DEL-01",
     val companyName: String = "Mythicus Automation & Logistics Corp",
-    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val themeMode: ThemeMode = ThemeMode.LIGHT,
     val language: AppLanguage = AppLanguage.ENGLISH,
     val dateFormat: DateFormat = DateFormat.ISO_8601,
     val timeFormat: TimeFormat = TimeFormat.HOUR_24,

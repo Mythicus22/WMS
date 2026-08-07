@@ -24,6 +24,7 @@ import com.example.myapplication.shared.presentation.components.AppToolbar
 import com.example.myapplication.shared.presentation.theme.AppColors
 import com.example.myapplication.shared.presentation.theme.AppDimensions
 import org.koin.mp.KoinPlatform.getKoin
+import com.example.myapplication.shared.presentation.localization.tr
 
 // ---------------------------------------------------------------------------
 // SHUTTLE SELECTION SCREEN
@@ -33,7 +34,6 @@ fun ReportsScreen(navigator: Navigator) {
     val registeredShuttleRepository: RegisteredShuttleRepository = remember { getKoin().get() }
     val shuttles by registeredShuttleRepository.getAllRegisteredShuttles().collectAsState(initial = emptyList())
     var refreshTrigger by remember { mutableStateOf(0) }
-    var showTimeoutError by remember { mutableStateOf(false) }
 
     val communicationService: com.example.myapplication.shared.communication.service.CommunicationService = remember { getKoin().get() }
     val activeDeviceId by communicationService.activeDevice.collectAsState(initial = null)
@@ -58,15 +58,6 @@ fun ReportsScreen(navigator: Navigator) {
         list
     }
 
-    LaunchedEffect(activeShuttles.isEmpty()) {
-        if (activeShuttles.isEmpty()) {
-            kotlinx.coroutines.delay(2000)
-            showTimeoutError = true
-        } else {
-            showTimeoutError = false
-        }
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -88,14 +79,14 @@ fun ReportsScreen(navigator: Navigator) {
         ) {
             item {
                 Text(
-                    "Select Data Source",
+                    "Select Data Source".tr(),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "Choose a shuttle to view its reports, or select All Shuttles for aggregated data.",
+                    "Choose a shuttle to view its reports, or select All Shuttles for aggregated data.".tr(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                 )
@@ -111,7 +102,7 @@ fun ReportsScreen(navigator: Navigator) {
 
             item {
                 Text(
-                    "INDIVIDUAL SHUTTLES",
+                    "INDIVIDUAL SHUTTLES".tr(),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
@@ -119,7 +110,6 @@ fun ReportsScreen(navigator: Navigator) {
                 )
             }
 
-            // activeShuttles is now derived from shuttles and activeDeviceId
             activeShuttles.chunked(2).forEach { rowShuttles ->
                 item {
                     Row(
@@ -143,18 +133,19 @@ fun ReportsScreen(navigator: Navigator) {
 
             if (activeShuttles.isEmpty()) {
                 item {
-                    Box(Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            if (showTimeoutError) {
-                                Icon(Icons.Default.ErrorOutline, contentDescription = "Error", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(48.dp))
-                                Spacer(Modifier.height(8.dp))
-                                Text("No shuttles registered", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
-                            } else {
-                                CircularProgressIndicator()
-                                Spacer(Modifier.height(8.dp))
-                                Text("Loading shuttles...", style = MaterialTheme.typography.bodySmall)
-                            }
-                        }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp)
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "No individual online shuttles active. Select 'All Shuttles' above for system reports.".tr(),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
@@ -168,42 +159,42 @@ private fun AllShuttlesCard(onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp),
+            .border(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.6f), RoundedCornerShape(12.dp)),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+            containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(20.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier.size(56.dp)
-                    .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(12.dp)),
+                modifier = Modifier.size(48.dp)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), RoundedCornerShape(10.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Analytics, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(28.dp))
+                Icon(Icons.Default.Analytics, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(24.dp))
             }
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "All Shuttles",
+                    "All Shuttles".tr(),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    "Aggregated reports and analytics across all operational shuttles",
+                    "Aggregated reports and analytics across all operational shuttles".tr(),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
                 Spacer(Modifier.height(6.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    StatChip("Reports", Icons.Default.Description)
-                    StatChip("Analytics", Icons.Default.BarChart)
-                    StatChip("Export", Icons.Default.FileDownload)
+                    StatChip("Reports".tr(), Icons.Default.Description)
+                    StatChip("Analytics".tr(), Icons.Default.BarChart)
+                    StatChip("Export".tr(), Icons.Default.FileDownload)
                 }
             }
             Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
@@ -223,15 +214,15 @@ private fun ShuttleSelectionCard(
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .border(
-                if (isActiveConnected) 2.dp else 1.dp,
-                if (isActiveConnected) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
+                if (isActiveConnected) 1.5.dp else 1.dp,
+                if (isActiveConnected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
                 RoundedCornerShape(12.dp)
             ),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isActiveConnected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (isActiveConnected) 4.dp else 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -244,19 +235,37 @@ private fun ShuttleSelectionCard(
             ) {
                 Box(
                     modifier = Modifier.size(44.dp)
-                        .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.12f), RoundedCornerShape(10.dp)),
+                        .background(
+                            if (isActiveConnected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant,
+                            RoundedCornerShape(10.dp)
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.LocalShipping, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(22.dp))
+                    Icon(
+                        Icons.Default.LocalShipping,
+                        contentDescription = null,
+                        tint = if (isActiveConnected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(22.dp)
+                    )
                 }
                 Box(
-                    modifier = Modifier.background(AppColors.Success.copy(alpha = 0.12f), RoundedCornerShape(6.dp)).padding(horizontal = 8.dp, vertical = 4.dp)
+                    modifier = Modifier
+                        .background(
+                            if (isActiveConnected) AppColors.Success.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant,
+                            RoundedCornerShape(6.dp)
+                        )
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
-                    Text("Active", style = MaterialTheme.typography.labelSmall, color = AppColors.Success, fontWeight = FontWeight.Bold)
+                    Text(
+                        if (isActiveConnected) "CONNECTED" else "AVAILABLE",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (isActiveConnected) AppColors.Success else MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
             Spacer(Modifier.height(12.dp))
-            Text(shuttle.nameToDisplay, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(shuttle.nameToDisplay, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.height(2.dp))
             Text("ID: ${shuttle.deviceId}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f))
         }
