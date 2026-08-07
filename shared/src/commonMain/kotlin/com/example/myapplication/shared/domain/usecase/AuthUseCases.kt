@@ -77,7 +77,6 @@ class LogoutUseCase(
     operator fun invoke() {
         sessionManager.clearSession()
         database.transaction {
-            database.appDatabaseQueries.deleteAllSettings()
             database.appDatabaseQueries.deleteAllRegisteredShuttles()
             database.appDatabaseQueries.deleteAllActiveShuttles()
             database.appDatabaseQueries.deleteAllDeviceAliases()

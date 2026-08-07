@@ -31,11 +31,29 @@ class SessionManager(
         val savedSessionId = configProvider.getSessionId()
         if (savedSessionId != null) {
             scope.launch {
-                val user = userRepository.getUserById(savedSessionId)
-                if (user != null) {
-                    _currentUser.update { user }
+                if (savedSessionId == "master_admin") {
+                    val config = configProvider.readConfig()
+                    if (config != null) {
+                        val adminUser = User(
+                            id = "master_admin",
+                            username = config.first,
+                            passwordHash = config.second,
+                            role = com.example.myapplication.shared.domain.model.UserRole.ADMIN,
+                            grantedFeatures = com.example.myapplication.shared.domain.model.FeaturePermission.entries.toSet(),
+                            grantedSettings = com.example.myapplication.shared.domain.model.SettingPermission.entries.toSet(),
+                            createdAt = 0L
+                        )
+                        _currentUser.update { adminUser }
+                    } else {
+                        configProvider.clearSessionId()
+                    }
                 } else {
-                    configProvider.clearSessionId()
+                    val user = userRepository.getUserById(savedSessionId)
+                    if (user != null) {
+                        _currentUser.update { user }
+                    } else {
+                        configProvider.clearSessionId()
+                    }
                 }
             }
         }

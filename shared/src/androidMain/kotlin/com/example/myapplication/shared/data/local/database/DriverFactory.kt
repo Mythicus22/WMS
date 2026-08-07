@@ -7,6 +7,6 @@ import com.example.myapplication.shared.database.AppDatabase
 
 actual class DriverFactory(private val context: Context) {
     actual fun createDriver(): SqlDriver {
-        return AndroidSqliteDriver(AppDatabase.Schema, context, "app.db")
+        return AndroidSqliteDriver(AppDatabase.Schema, context, "wms_v2.db")
     }
 }

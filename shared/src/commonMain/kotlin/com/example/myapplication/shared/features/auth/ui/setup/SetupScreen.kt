@@ -22,6 +22,10 @@ import com.example.myapplication.shared.features.auth.viewmodel.SetupUiEffect
 import com.example.myapplication.shared.features.auth.viewmodel.SetupUiEvent
 import com.example.myapplication.shared.features.auth.viewmodel.SetupViewModel
 import kotlinx.coroutines.flow.collectLatest
+import org.jetbrains.compose.resources.painterResource
+import myapplication.shared.generated.resources.Res
+import myapplication.shared.generated.resources.jkw_logo
+import com.example.myapplication.shared.presentation.theme.AppColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,11 +72,19 @@ fun SetupScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    androidx.compose.foundation.Image(
+                        painter = painterResource(Res.drawable.jkw_logo),
+                        contentDescription = "JKW Logo",
+                        modifier = Modifier.height(48.dp)
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+
                     Text(
                         text = "First-Time Setup",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
                     Text(
@@ -134,7 +146,8 @@ fun SetupScreen(
                         onClick = { viewModel.onEvent(SetupUiEvent.OnFinishClicked) },
                         modifier = Modifier.fillMaxWidth().height(50.dp),
                         enabled = !currentState.isLoading,
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(24.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = AppColors.Primary)
                     ) {
                         if (currentState.isLoading) {
                             CircularProgressIndicator(
@@ -142,7 +155,7 @@ fun SetupScreen(
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
                         } else {
-                            Text("Finish Setup", style = MaterialTheme.typography.titleMedium)
+                            Text("Finish Setup", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         }
                     }
                 }

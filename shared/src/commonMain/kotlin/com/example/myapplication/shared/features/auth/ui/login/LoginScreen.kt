@@ -53,6 +53,10 @@ import com.example.myapplication.shared.features.auth.viewmodel.LoginUiEvent
 import com.example.myapplication.shared.presentation.components.PrimaryButton
 import com.example.myapplication.shared.presentation.theme.AppColors
 import com.example.myapplication.shared.presentation.theme.AppDimensions
+import org.jetbrains.compose.resources.painterResource
+import myapplication.shared.generated.resources.Res
+import myapplication.shared.generated.resources.jkw_logo
+import myapplication.shared.generated.resources.antonomous_logo
 
 @Composable
 fun LoginScreen(
@@ -88,24 +92,16 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center
         ) {
             // Industrial Brand Header
-            Box(
-                modifier = Modifier
-                    .size(72.dp)
-                    .background(AppColors.Primary, shape = RoundedCornerShape(16.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Lock,
-                    contentDescription = "App Logo",
-                    tint = Color.White,
-                    modifier = Modifier.size(36.dp)
-                )
-            }
+            androidx.compose.foundation.Image(
+                painter = painterResource(Res.drawable.jkw_logo),
+                contentDescription = "JKW Logo",
+                modifier = Modifier.height(64.dp)
+            )
 
             Spacer(modifier = Modifier.height(AppDimensions.spacing16))
 
             Text(
-                text = "Warehouse Operations Suite",
+                text = "Warehouse Management System",
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
@@ -269,6 +265,14 @@ fun LoginScreen(
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                 textAlign = TextAlign.Center
+            )
+            
+            Spacer(modifier = Modifier.height(AppDimensions.spacing32))
+            
+            androidx.compose.foundation.Image(
+                painter = painterResource(Res.drawable.antonomous_logo),
+                contentDescription = "Antonomous Logo",
+                modifier = Modifier.height(24.dp)
             )
         }
     }

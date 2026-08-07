@@ -158,6 +158,12 @@ class SettingsRepositoryImpl(
     }
 
     override fun resetSettings() {
-        _settingsState.value = AppSettings()
+        _settingsState.update { curr ->
+            AppSettings(
+                communication = curr.communication,
+                backup = curr.backup
+            )
+        }
+        saveSettingsToDb(_settingsState.value)
     }
 }

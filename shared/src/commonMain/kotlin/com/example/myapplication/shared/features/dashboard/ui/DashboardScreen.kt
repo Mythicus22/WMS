@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.MonitorHeart
 import androidx.compose.material.icons.filled.OpenInFull
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PrecisionManufacturing
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
@@ -55,6 +56,9 @@ import com.example.myapplication.shared.presentation.components.ChipStatus
 import com.example.myapplication.shared.presentation.components.StatusChip
 import com.example.myapplication.shared.presentation.theme.AppColors
 import com.example.myapplication.shared.presentation.theme.AppDimensions
+import org.jetbrains.compose.resources.painterResource
+import myapplication.shared.generated.resources.Res
+import myapplication.shared.generated.resources.antonomous_logo
 
 @Composable
 fun DashboardScreen(
@@ -90,42 +94,46 @@ fun DashboardScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(
-                    text = "Warehouse Overview",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+            androidx.compose.foundation.Image(
+                painter = painterResource(Res.drawable.antonomous_logo),
+                contentDescription = "Antonomous Logo",
+                modifier = Modifier.height(24.dp)
+            )
+            
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 currentState.currentUser?.let { user ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(top = AppDimensions.spacing4)
+                        modifier = Modifier
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape)
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .background(AppColors.Success, shape = CircleShape)
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
                         )
-                        Spacer(modifier = Modifier.width(AppDimensions.spacing4))
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = "${user.username} (${user.role.displayName})",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
                         )
                     }
+                    Spacer(modifier = Modifier.width(16.dp))
                 }
-            }
 
-            // Logout Action Button
-            IconButton(
-                onClick = { viewModel.onEvent(DashboardUiEvent.OnLogoutClicked) }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ExitToApp,
-                    contentDescription = "Logout",
-                    tint = AppColors.Error
-                )
+                IconButton(
+                    onClick = { viewModel.onEvent(DashboardUiEvent.OnLogoutClicked) }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ExitToApp,
+                        contentDescription = "Logout",
+                        tint = AppColors.Error
+                    )
+                }
             }
         }
 
@@ -133,85 +141,44 @@ fun DashboardScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(AppDimensions.spacing16)
+                .padding(AppDimensions.spacing24)
         ) {
+            Text(
+                text = "Warehouse Overview",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.height(AppDimensions.spacing16))
+
             // System Overview Metric Cards Grid
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(AppDimensions.spacing12)
+                horizontalArrangement = Arrangement.spacedBy(AppDimensions.spacing16)
             ) {
                 MetricCard(
                     title = "TOTAL SHUTTLES",
                     value = currentState.totalDiscoveredDevices.toString(),
                     icon = Icons.Default.OpenInFull,
-                    iconTint = AppColors.Primary,
+                    iconTint = Color.White,
                     modifier = Modifier.weight(1f)
                 )
                 MetricCard(
-                    title = "ONLINE",
-                    value = currentState.onlineDiscoveredDevices.toString(),
-                    icon = Icons.Default.CheckCircle,
-                    iconTint = AppColors.Success,
+                    title = "ACTIVE SHUTTLE ID",
+                    value = currentState.activeDeviceId ?: "None",
+                    icon = Icons.Default.PrecisionManufacturing,
+                    iconTint = Color.White,
                     modifier = Modifier.weight(1f)
                 )
             }
 
-            Spacer(modifier = Modifier.height(AppDimensions.spacing12))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(AppDimensions.spacing12)
-            ) {
-                MetricCard(
-                    title = "OFFLINE",
-                    value = currentState.offlineDiscoveredDevices.toString(),
-                    icon = Icons.Default.MonitorHeart,
-                    iconTint = MaterialTheme.colorScheme.outline,
-                    modifier = Modifier.weight(1f)
-                )
-                MetricCard(
-                    title = "ACTIVE FAULTS",
-                    value = "2",
-                    icon = Icons.Default.Build,
-                    iconTint = AppColors.Warning,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(AppDimensions.spacing16))
-
-            // System Status Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(AppDimensions.spacing16),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = "SYSTEM STATUS",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                        Spacer(modifier = Modifier.height(AppDimensions.spacing4))
-                        StatusChip(text = "HEALTHY", status = ChipStatus.SUCCESS)
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(AppDimensions.spacing24))
+            Spacer(modifier = Modifier.height(AppDimensions.spacing32))
 
             Text(
-                text = "AVAILABLE MODULES",
-                style = MaterialTheme.typography.labelMedium,
+                text = "Available Modules",
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(AppDimensions.spacing12))
@@ -300,14 +267,15 @@ private fun MetricCard(
     Card(
         modifier = modifier.border(
             width = 1.dp,
-            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
-            shape = RoundedCornerShape(12.dp)
+            color = AppColors.Primary.copy(alpha = 0.5f),
+            shape = RoundedCornerShape(16.dp)
         ),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = AppColors.Primary),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Column(
-            modifier = Modifier.padding(AppDimensions.spacing16)
+            modifier = Modifier.padding(24.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -316,22 +284,23 @@ private fun MetricCard(
             ) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White.copy(alpha = 0.8f)
                 )
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    tint = iconTint,
-                    modifier = Modifier.size(18.dp)
+                    tint = Color.White.copy(alpha = 0.6f),
+                    modifier = Modifier.size(24.dp)
                 )
             }
-            Spacer(modifier = Modifier.height(AppDimensions.spacing8))
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = value,
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = Color.White
             )
         }
     }
@@ -365,11 +334,11 @@ private fun FeatureModuleCard(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(AppDimensions.spacing16),
-            horizontalAlignment = Alignment.Start
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
@@ -388,21 +357,23 @@ private fun FeatureModuleCard(
                 )
             }
 
-            Spacer(modifier = Modifier.height(AppDimensions.spacing12))
+            Spacer(modifier = Modifier.width(AppDimensions.spacing16))
 
-            Text(
-                text = feature.displayName,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(AppDimensions.spacing4))
-            Text(
-                text = feature.description,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                maxLines = 2
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = feature.displayName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(AppDimensions.spacing4))
+                Text(
+                    text = feature.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    maxLines = 2
+                )
+            }
         }
     }
 }

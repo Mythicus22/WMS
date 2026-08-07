@@ -74,7 +74,7 @@ fun SplashScreen(navigator: Navigator) {
             Spacer(modifier = Modifier.height(AppDimensions.spacing24))
 
             Text(
-                text = "Warehouse Operations Suite",
+                text = "Warehouse Management System",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground

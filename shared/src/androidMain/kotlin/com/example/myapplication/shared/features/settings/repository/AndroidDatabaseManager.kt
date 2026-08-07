@@ -14,7 +14,7 @@ class AndroidDatabaseManager(private val context: Context) : DatabaseManager {
     
     override suspend fun backupDatabase(destinationDirectoryUri: String): String = withContext(Dispatchers.IO) {
         try {
-            val dbFile = context.getDatabasePath("app.db")
+            val dbFile = context.getDatabasePath("wms_v2.db")
             if (!dbFile.exists()) {
                 throw IllegalStateException("Database file not found.")
             }
@@ -45,7 +45,7 @@ class AndroidDatabaseManager(private val context: Context) : DatabaseManager {
     override suspend fun restoreDatabase(backupUri: String) = withContext(Dispatchers.IO) {
         try {
             val uri = Uri.parse(backupUri)
-            val dbFile = context.getDatabasePath("app.db")
+            val dbFile = context.getDatabasePath("wms_v2.db")
             
             // Note: In a real app, you must close all database connections before replacing the file.
             // For this prototype, we'll replace the file directly.
